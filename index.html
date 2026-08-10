@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#100f0e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f4ef" media="(prefers-color-scheme: light)">
+<title>Cimientos</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cimientos">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<main id="app">
+
+  <!-- ============ HOY ============ -->
+  <section class="view" data-view="hoy">
+    <header class="hoy-head">
+      <div class="fecha" id="hoyFecha"></div>
+      <button class="chip-foco" id="btnFoco" type="button"></button>
+    </header>
+
+    <div class="maxima-stage" id="maximaStage">
+      <div class="maxima-pilar" id="maximaPilar"></div>
+      <blockquote class="maxima-texto" id="maximaTexto"></blockquote>
+      <div class="maxima-fuente" id="maximaFuente"></div>
+      <div class="maxima-progreso" id="maximaProgreso"></div>
+    </div>
+
+    <div class="hoy-acciones">
+      <button class="acc" id="accResono" type="button">
+        <span class="acc-ico">◈</span><span class="acc-txt">Me resonó</span>
+      </button>
+      <button class="acc" id="accFav" type="button">
+        <span class="acc-ico">★</span><span class="acc-txt">Favorita</span>
+      </button>
+      <button class="acc" id="accEscribir" type="button">
+        <span class="acc-ico">✎</span><span class="acc-txt">Escribir</span>
+      </button>
+      <button class="acc" id="accOtra" type="button">
+        <span class="acc-ico">↻</span><span class="acc-txt">Otra</span>
+      </button>
+    </div>
+
+    <div class="cierre" id="cierreDia">
+      <div class="cierre-titulo">Cierre del día</div>
+      <p class="cierre-pregunta">¿La practicaste hoy?</p>
+      <div class="cierre-opts">
+        <button type="button" data-practica="si">Sí</button>
+        <button type="button" data-practica="medias">A medias</button>
+        <button type="button" data-practica="no">No</button>
+      </div>
+      <div class="cierre-hecho" hidden>
+        <span id="cierreHechoTxt"></span>
+        <button type="button" class="link" id="cierreDeshacer">cambiar</button>
+      </div>
+    </div>
+
+    <div class="racha" id="racha"></div>
+  </section>
+
+  <!-- ============ PILARES ============ -->
+  <section class="view" data-view="pilares" hidden>
+    <header class="view-head">
+      <h1>Pilares</h1>
+      <button class="btn-ghost" id="btnNuevoPilar" type="button">+ Pilar</button>
+    </header>
+    <p class="view-sub">Tus valores raíz. Pocos, y bien tuyos. Tocá uno para escribir qué significa para vos.</p>
+    <div class="pilares-lista" id="pilaresLista"></div>
+  </section>
+
+  <!-- ============ MÁXIMAS ============ -->
+  <section class="view" data-view="maximas" hidden>
+    <header class="view-head">
+      <h1>Máximas</h1>
+      <button class="btn-ghost" id="btnNuevaMaxima" type="button">+ Máxima</button>
+    </header>
+
+    <div class="buscador">
+      <input type="search" id="buscar" placeholder="Buscar una frase…" autocomplete="off">
+    </div>
+
+    <div class="filtros" id="filtrosEstado">
+      <button type="button" class="f on" data-estado="todas">Todas</button>
+      <button type="button" class="f" data-estado="fav">★ Favoritas</button>
+      <button type="button" class="f" data-estado="nueva">Nuevas</button>
+      <button type="button" class="f" data-estado="practica">En práctica</button>
+      <button type="button" class="f" data-estado="cimiento">Cimientos</button>
+    </div>
+    <div class="filtros filtros-pilar" id="filtrosPilar"></div>
+
+    <div class="maximas-lista" id="maximasLista"></div>
+  </section>
+
+  <!-- ============ DIARIO ============ -->
+  <section class="view" data-view="diario" hidden>
+    <header class="view-head">
+      <h1>Diario</h1>
+      <button class="btn-ghost" id="btnNuevaNota" type="button">+ Nota</button>
+    </header>
+    <p class="view-sub">Acá la frase se vuelve tuya: pegala contra un hecho real.</p>
+    <div class="diario-lista" id="diarioLista"></div>
+  </section>
+
+  <!-- ============ MANIFIESTO ============ -->
+  <section class="view" data-view="manifiesto" hidden>
+    <header class="view-head">
+      <h1>Manifiesto</h1>
+      <button class="btn-ghost" id="btnCompartir" type="button">Copiar</button>
+    </header>
+    <p class="view-sub">Esto no lo escribís de una. Se escribe solo, a medida que una frase se vuelve cimiento.</p>
+    <div class="manifiesto" id="manifiestoBody"></div>
+  </section>
+
+  <!-- ============ AJUSTES ============ -->
+  <section class="view" data-view="ajustes" hidden>
+    <header class="view-head"><h1>Ajustes</h1></header>
+
+    <div class="set-block">
+      <h2>Recordatorio de la mañana</h2>
+      <label class="row-set">
+        <span>Avisarme cada día</span>
+        <input type="checkbox" id="setNotif">
+      </label>
+      <label class="row-set">
+        <span>Hora</span>
+        <input type="time" id="setHora" value="07:30">
+      </label>
+      <p class="nota-tec" id="notifEstado"></p>
+    </div>
+
+    <div class="set-block">
+      <h2>Camino a cimiento</h2>
+      <label class="row-set">
+        <span>Veces que tiene que resonar</span>
+        <input type="number" id="setUmbral" min="3" max="60" step="1">
+      </label>
+      <p class="nota-tec">Cuando una máxima acumula esa cantidad de “me resonó”, pasa sola a Cimiento y entra al Manifiesto.</p>
+    </div>
+
+    <div class="set-block">
+      <h2>Tus datos</h2>
+      <p class="nota-tec">Todo vive en este dispositivo. Nada sale de acá. Exportá de vez en cuando para tener respaldo.</p>
+      <div class="set-botones">
+        <button class="btn" id="btnExportar" type="button">Exportar respaldo</button>
+        <button class="btn" id="btnImportar" type="button">Importar</button>
+      </div>
+      <input type="file" id="fileImportar" accept="application/json" hidden>
+      <button class="btn btn-peligro" id="btnReset" type="button">Borrar todo y empezar de cero</button>
+    </div>
+
+    <p class="firma">Cimientos · v1</p>
+  </section>
+
+</main>
+
+<!-- ============ NAV ============ -->
+<nav id="nav">
+  <button type="button" data-goto="hoy" class="on"><span>◉</span>Hoy</button>
+  <button type="button" data-goto="pilares"><span>◈</span>Pilares</button>
+  <button type="button" data-goto="maximas"><span>❝</span>Máximas</button>
+  <button type="button" data-goto="diario"><span>✎</span>Diario</button>
+  <button type="button" data-goto="manifiesto"><span>◆</span>Yo</button>
+</nav>
+
+<!-- ============ HOJA MODAL ============ -->
+<div id="sheet" hidden>
+  <div class="sheet-fondo" data-cerrar></div>
+  <div class="sheet-caja" role="dialog" aria-modal="true">
+    <div class="sheet-barra"><span data-cerrar>✕</span></div>
+    <div class="sheet-cuerpo" id="sheetCuerpo"></div>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>

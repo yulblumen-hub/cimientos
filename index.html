@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#f7f4ef" media="(prefers-color-scheme: light)">
 <title>Cimientos</title>
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -87,11 +88,23 @@
     <div class="filtros" id="filtrosEstado">
       <button type="button" class="f on" data-estado="todas">Todas</button>
       <button type="button" class="f" data-estado="fav">★ Favoritas</button>
+      <button type="button" class="f" data-estado="manifiesto">En el manifiesto</button>
       <button type="button" class="f" data-estado="nueva">Nuevas</button>
       <button type="button" class="f" data-estado="practica">En práctica</button>
-      <button type="button" class="f" data-estado="cimiento">Cimientos</button>
+      <button type="button" class="f" data-estado="marcada">Marcadas · 12</button>
+      <button type="button" class="f" data-estado="arraigada">Arraigadas · 30</button>
+      <button type="button" class="f" data-estado="sostenida">Sostenidas · 90</button>
+      <button type="button" class="f" data-estado="cimiento">Cimientos · 365</button>
     </div>
     <div class="filtros filtros-pilar" id="filtrosPilar"></div>
+
+    <button class="abrir-cosmos" id="btnCosmos" type="button">
+      <span class="cosmos-ico">✷</span>
+      <span>
+        <b>Constelación</b>
+        <small>Navegá las frases como un espacio, no como una lista</small>
+      </span>
+    </button>
 
     <div class="maximas-lista" id="maximasLista"></div>
   </section>
@@ -100,9 +113,15 @@
   <section class="view" data-view="diario" hidden>
     <header class="view-head">
       <h1>Diario</h1>
-      <button class="btn-ghost" id="btnNuevaNota" type="button">+ Nota</button>
+      <button class="btn-ghost" id="btnAgregarDiario" type="button">+ Nota</button>
     </header>
-    <p class="view-sub">Acá la frase se vuelve tuya: pegala contra un hecho real.</p>
+
+    <div class="segmento" id="segDiario">
+      <button type="button" class="on" data-seg="notas">Notas</button>
+      <button type="button" data-seg="dialogos">Conversaciones</button>
+    </div>
+
+    <p class="view-sub" id="diarioSub"></p>
     <div class="diario-lista" id="diarioLista"></div>
   </section>
 
@@ -134,12 +153,29 @@
     </div>
 
     <div class="set-block">
-      <h2>Camino a cimiento</h2>
+      <h2>Tu nombre</h2>
       <label class="row-set">
-        <span>Veces que tiene que resonar</span>
-        <input type="number" id="setUmbral" min="3" max="60" step="1">
+        <span>Cómo firmás lo tuyo</span>
+        <input type="text" id="setMiNombre" placeholder="Yo" style="width:130px;text-align:right;background:var(--bg);border:1px solid var(--linea);border-radius:9px;padding:7px 11px;outline:none">
       </label>
-      <p class="nota-tec">Cuando una máxima acumula esa cantidad de “me resonó”, pasa sola a Cimiento y entra al Manifiesto.</p>
+      <p class="nota-tec">Cuando rescatás una frase tuya de una conversación, se guarda con este nombre como autor.</p>
+    </div>
+
+    <div class="set-block">
+      <h2>La escalera</h2>
+      <ol class="escalera">
+        <li><b>En práctica</b><span>1 día</span></li>
+        <li><b>Marcada</b><span>12 días</span></li>
+        <li><b>Arraigada</b><span>30 días</span></li>
+        <li><b>Sostenida</b><span>90 días</span></li>
+        <li><b>Cimiento</b><span>365 días</span></li>
+      </ol>
+      <p class="nota-tec">
+        Cuentan días distintos, no toques: una marca por día y se acabó.
+        Desde <b>Marcada</b> la frase entra al manifiesto, pero cimiento de
+        verdad es solo la que te acompañó un año entero. Por eso no se puede
+        elegir a mano.
+      </p>
     </div>
 
     <div class="set-block">
@@ -173,6 +209,22 @@
   <div class="sheet-caja" role="dialog" aria-modal="true">
     <div class="sheet-barra"><span data-cerrar>✕</span></div>
     <div class="sheet-cuerpo" id="sheetCuerpo"></div>
+  </div>
+</div>
+
+<!-- ============ CONSTELACIÓN ============ -->
+<div id="cosmos" hidden>
+  <canvas id="cosmosLienzo"></canvas>
+  <button type="button" id="cosmosSalir" aria-label="Salir">✕</button>
+  <div id="cosmosPista">Arrastrá para navegar</div>
+  <div id="cosmosCarta" hidden>
+    <div class="cc-pilar" id="ccPilar"></div>
+    <blockquote class="cc-texto" id="ccTexto"></blockquote>
+    <div class="cc-pie" id="ccPie"></div>
+    <div class="cc-acciones">
+      <button type="button" id="ccResono">◈ Me resonó</button>
+      <button type="button" id="ccAbrir">Abrir</button>
+    </div>
   </div>
 </div>
 

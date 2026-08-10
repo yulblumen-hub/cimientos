@@ -14,18 +14,36 @@ Tres capas:
 | Capa | Qué es |
 |---|---|
 | **Pilares** | Tus valores raíz. Pocos (3–7). Cada uno con una definición escrita por vos. |
-| **Máximas** | Las frases. Cada una cuelga de un pilar y tiene un estado que evoluciona. |
-| **Diario** | Notas cortas atadas a una máxima. Ahí la frase se pega a un hecho real. |
+| **Máximas** | Las frases. Cada una cuelga de un pilar y sube por la escalera. |
+| **Autores** | Quién la dijo: años, qué pensaba, qué enseñó. Y tus comentarios sobre esa persona. |
+| **Diario** | Notas atadas a una máxima, y **conversaciones** con gente puntual. |
 
-Y el ciclo que hace que calen:
+### La escalera
 
 ```
-Nueva  ──"me resonó"──▶  En práctica  ──12 veces──▶  Cimiento  ──▶  Manifiesto
+Nueva → En práctica (1) → Marcada (12) → Arraigada (30) → Sostenida (90) → Cimiento (365)
 ```
 
-Nada se vuelve cimiento porque te gustó una vez. Se vuelve cimiento porque
-volviste a elegirlo doce días distintos. El **Manifiesto** se escribe solo con
-lo que sobrevivió a esa prueba.
+Cuenta **días distintos, no toques**: una marca por día y se acabó. Desde
+*Marcada* la frase entra al manifiesto; cimiento de verdad es solo la que te
+acompañó un año entero.
+
+Por eso el grado **no se puede elegir a mano**. Un principio no se declara: se
+gana volviendo. Cada día marcado deja un punto, y los hitos quedan señalados —
+la repetición se ve acumulada, no como un número suelto.
+
+### Constelación
+
+Las frases también se navegan como un espacio. Cada pilar es una región, las
+del mismo pilar quedan unidas por hilos, las que comparten autor por un hilo
+propio, y las que más volviste brillan más grande. Se arrastra para moverse.
+
+### Conversaciones
+
+Pegás un chat entero y la app se queda con lo que vale: reconoce el formato de
+WhatsApp, descarta sola el relleno ("jeje", "dale", "xD") y vos confirmás. Una
+línea que te pegó se rescata como máxima con esa persona de autor — y entra a
+la constelación atada a ella.
 
 ### Rituales
 

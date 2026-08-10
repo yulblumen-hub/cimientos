@@ -149,12 +149,42 @@ button{ background:none; border:0; cursor:pointer; }
   margin-top:28px; display:flex; align-items:center; gap:11px;
   font-size:11.5px; color:var(--texto-3); letter-spacing:.03em;
 }
-.barra{
-  flex:1; max-width:130px; height:2px; border-radius:2px;
-  background:var(--linea); overflow:hidden;
+.maxima-progreso{ flex-direction:column; align-items:flex-start; gap:9px; }
+.grado-linea{ font-size:11.5px; color:var(--texto-3); letter-spacing:.03em; line-height:1.5; }
+
+/* Un punto por día que volviste. Los hitos —12, 30, 90, 365— quedan
+   marcados, para que la repetición se vea acumulada y no como un número. */
+.puntos{
+  display:flex; flex-wrap:wrap; gap:3px; align-items:center;
+  max-width:100%;
 }
-.barra i{ display:block; height:100%; background:var(--c, var(--texto-2)); border-radius:2px;
-  transition:width .5s cubic-bezier(.2,.8,.2,1); }
+.puntos .p{
+  width:4px; height:4px; border-radius:50%;
+  background:var(--c, var(--texto-2)); opacity:.42;
+}
+.puntos .p.hito{
+  width:7px; height:7px; opacity:1;
+  box-shadow:0 0 0 2px var(--bg), 0 0 0 3px var(--c, var(--texto-2));
+  margin:0 3px;
+}
+.p-mas{ font-size:10px; color:var(--texto-3); margin-right:4px; }
+
+/* la escalera en Ajustes */
+.escalera{ list-style:none; margin:0; padding:0; }
+.escalera li{
+  display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  padding:9px 0; border-bottom:1px solid var(--linea-2); font-size:14px;
+}
+.escalera li:last-child{ border-bottom:0; }
+.escalera b{ font-weight:500; }
+.escalera span{ font-size:12px; color:var(--texto-3); }
+
+.mf-grado{
+  display:block; font-family:var(--sans); font-size:10px;
+  letter-spacing:.12em; text-transform:uppercase;
+  color:var(--texto-3); margin-top:7px;
+}
+.mf-frase.es-cimiento::before{ width:14px; height:2px; opacity:1; }
 
 /* --- acciones --- */
 .hoy-acciones{
@@ -474,11 +504,201 @@ button{ background:none; border:0; cursor:pointer; }
 }
 .btn-borrar{ color:var(--peligro); font-size:13.5px; padding:15px 4px; }
 
+/* ---------- autores ---------- */
+.autor-link{
+  color:inherit; font:inherit;
+  border-bottom:1px solid currentColor;
+  padding:0 0 1px; opacity:.9;
+  transition:.15s;
+}
+.autor-link:active{ opacity:.55; }
+
+.autor-cab{ margin-bottom:22px; }
+.autor-cab h3{ margin-bottom:6px; }
+.autor-anios{
+  font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--texto-3);
+}
+.autor-ident{
+  font-family:var(--serif); font-size:16.5px; line-height:1.45;
+  color:var(--texto-2); margin:10px 0 0;
+}
+
+.autor-bloque{ margin-bottom:20px; }
+.autor-bloque label{
+  display:block; font-size:11px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--texto-3); margin-bottom:8px;
+}
+.autor-bloque p{
+  margin:0; font-size:15px; line-height:1.62; color:var(--texto);
+}
+
+.ver-completo{
+  width:100%; padding:12px; margin:2px 0 18px;
+  border:1px solid var(--linea); border-radius:11px;
+  font-size:13px; letter-spacing:.03em; color:var(--texto-2);
+  transition:.15s;
+}
+.ver-completo:active{ background:var(--bg-alto); }
+
+.autor-largo{
+  padding:2px 0 18px;
+  animation:entrar .25s ease both;
+}
+.autor-largo p{
+  margin:0 0 14px; font-size:15px; line-height:1.68; color:var(--texto-2);
+}
+.autor-largo p:last-child{ margin-bottom:0; }
+
+.autor-frase{
+  font-family:var(--serif); font-size:15.5px; line-height:1.45;
+  padding:12px 14px; margin-bottom:7px; border-radius:11px;
+  background:var(--bg-alto); border:1px solid var(--linea-2);
+  cursor:pointer;
+}
+.autor-frase:active{ transform:scale(.995); }
+
+.nota-ancla-autor{ color:var(--texto-3); }
+.nota-ancla-autor::before{ content:"◈"; }
+
 .sheet-cita{
   font-family:var(--serif); font-size:19px; line-height:1.4;
   padding:16px 18px; border-radius:14px; margin-bottom:20px;
   background:var(--bg-alto); border-left:2px solid var(--c);
 }
+
+/* ============================================================
+   CONVERSACIONES
+   ============================================================ */
+.segmento{
+  display:flex; gap:4px; padding:3px; margin:2px 0 16px;
+  background:var(--bg-alto); border:1px solid var(--linea-2);
+  border-radius:12px;
+}
+.segmento button{
+  flex:1; padding:9px; border-radius:9px; font-size:13.5px;
+  color:var(--texto-3); transition:.15s;
+}
+.segmento button.on{ background:var(--bg); color:var(--texto); box-shadow:var(--sombra); }
+
+.dlg{
+  padding:16px 18px; margin-bottom:9px; border-radius:14px;
+  background:var(--bg-alto); border:1px solid var(--linea-2);
+  cursor:pointer; transition:.15s;
+}
+.dlg:active{ transform:scale(.995); }
+.dlg-cab{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.dlg-persona{ font-family:var(--serif); font-size:18px; }
+.dlg-fecha{ font-size:11px; color:var(--texto-3); white-space:nowrap; }
+.dlg-ultima{
+  margin-top:9px; font-size:14px; line-height:1.5; color:var(--texto-2);
+}
+.dlg-meta{ margin-top:10px; font-size:11px; color:var(--texto-3); }
+
+/* --- elegir qué líneas se guardan --- */
+.lineas{ display:flex; flex-direction:column; gap:7px; margin-bottom:6px; }
+.lin{
+  display:grid; grid-template-columns:1fr auto; gap:10px;
+  padding:12px 14px; border-radius:12px; cursor:pointer;
+  border:1px solid var(--linea-2); transition:.15s;
+}
+.lin .lin-quien{
+  grid-column:1/-1; font-size:10px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--texto-3); margin-bottom:-4px;
+}
+.lin-txt{ font-size:14.5px; line-height:1.5; }
+.lin-tic{ font-size:13px; color:var(--texto); align-self:center; }
+.lin.si{ background:var(--bg-alto); border-color:var(--linea); }
+.lin.no{ opacity:.42; }
+.lin.no .lin-txt{ text-decoration:line-through; text-decoration-thickness:1px; }
+
+/* --- la charla --- */
+.chat{ display:flex; flex-direction:column; gap:8px; margin-bottom:6px; }
+.burbuja{
+  max-width:88%; padding:11px 14px; border-radius:16px;
+  cursor:pointer; transition:.15s;
+  background:var(--bg-alto); border:1px solid var(--linea-2);
+}
+.burbuja:active{ transform:scale(.99); }
+.burbuja.otro{ align-self:flex-start; border-bottom-left-radius:5px; }
+.burbuja.yo{
+  align-self:flex-end; border-bottom-right-radius:5px;
+  background:#7a8b6f33; border-color:#7a8b6f7a;
+}
+.bur-quien{
+  font-size:9.5px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--texto-3); margin-bottom:5px;
+}
+.bur-txt{ font-size:15px; line-height:1.5; }
+
+/* ============================================================
+   CONSTELACIÓN
+   Modo inmersivo. Siempre oscuro, sin importar el tema: es otro
+   lugar, no otra pantalla.
+   ============================================================ */
+.abrir-cosmos{
+  width:100%; display:flex; align-items:center; gap:14px;
+  padding:16px 18px; margin:2px 0 18px;
+  border:1px solid var(--linea); border-radius:var(--r);
+  text-align:left; color:var(--texto-2); transition:.15s;
+}
+.abrir-cosmos:active{ background:var(--bg-alto); }
+.abrir-cosmos .cosmos-ico{ font-size:19px; color:var(--texto); flex:none; }
+.abrir-cosmos b{ display:block; font-size:14.5px; color:var(--texto); font-weight:500; }
+.abrir-cosmos small{ display:block; font-size:12px; color:var(--texto-3); margin-top:3px; line-height:1.4; }
+
+#cosmos{
+  position:fixed; inset:0; z-index:90;
+  background:#07070a;
+  overscroll-behavior:none; touch-action:none;
+  animation:fundir .4s ease both;
+}
+#cosmos[hidden]{ display:none !important; }
+#cosmosLienzo{ display:block; width:100%; height:100%; cursor:grab; }
+#cosmosLienzo.agarrando{ cursor:grabbing; }
+
+#cosmosSalir{
+  position:absolute; top:calc(var(--safe-t) + 14px); right:14px; z-index:3;
+  width:38px; height:38px; border-radius:50%;
+  background:#ffffff0f; color:#e8e4dc; font-size:15px;
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+}
+#cosmosPista{
+  position:absolute; top:calc(var(--safe-t) + 22px); left:20px; z-index:2;
+  font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  color:#ffffff44; max-width:60%; line-height:1.5;
+  transition:opacity .6s ease; pointer-events:none;
+}
+#cosmosPista.ida{ opacity:0; }
+
+#cosmosCarta{
+  position:absolute; left:12px; right:12px; bottom:calc(var(--safe-b) + 12px); z-index:3;
+  background:#12121aee; border:1px solid #ffffff14; border-radius:18px;
+  padding:18px 18px 14px;
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  animation:subir .3s cubic-bezier(.2,.9,.25,1) both;
+  max-width:616px; margin:0 auto;
+}
+#cosmosCarta[hidden]{ display:none !important; }
+.cc-pilar{
+  font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--c, #8a8a99); margin-bottom:11px;
+}
+.cc-texto{
+  font-family:var(--serif); font-size:19px; line-height:1.42;
+  color:#f2eee6; margin:0; text-wrap:pretty;
+}
+.cc-pie{
+  margin-top:11px; font-size:11.5px; color:#ffffff55;
+  display:flex; gap:9px; flex-wrap:wrap; align-items:center;
+}
+.cc-acciones{ display:flex; gap:8px; margin-top:15px; }
+.cc-acciones button{
+  flex:1; padding:11px; border-radius:11px;
+  border:1px solid #ffffff1f; color:#ded9d0; font-size:13px;
+  transition:.15s;
+}
+.cc-acciones button:active{ background:#ffffff12; }
 
 /* ---------- toast ---------- */
 #toast{

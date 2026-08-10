@@ -65,30 +65,31 @@ todo el resto de la app le pide los datos a `db` y no sabe de dónde salen.
 
 ---
 
-## Publicarla (sin gastar créditos)
+## Publicada
 
-Es un sitio estático puro, así que **GitHub Pages** alcanza y es gratis e
-ilimitado. A diferencia de Netlify, no consume créditos por deploy.
+**https://yulblumen-hub.github.io/cimientos/**
 
-Una sola vez:
+Repo: `yulblumen-hub/cimientos`, en GitHub Pages. Gratis, ilimitado, **cero
+créditos** (a diferencia de Netlify, que cobra por deploy).
 
-1. Creá un repo en GitHub (puede ser privado; Pages necesita público en el
-   plan gratuito, o privado con Pro).
-2. Desde esta carpeta:
+Para publicar un cambio, desde esta carpeta:
 
 ```bash
-cd /Users/yul/Downloads/cimientos && git init && git add -A && git commit -m "Cimientos v1"
+cd /Users/yul/Downloads/cimientos && git add -A && git commit -m "que cambió" && git push
 ```
 
-3. Conectalo y subilo:
+Tarda ~1 minuto en verse. No hay que arrastrar carpetas ni tocar nada más.
 
-```bash
-git remote add origin git@github.com:TU_USUARIO/cimientos.git && git branch -M main && git push -u origin main
-```
+### Cada persona, su propia copia
 
-4. En el repo: **Settings → Pages → Branch: `main` / root → Save**.
+El link se puede compartir con quien sea. Como los datos viven en el navegador
+de cada uno, cada persona que lo abre arranca con su copia en blanco: sus
+pilares, sus máximas, su manifiesto. Nadie ve lo del otro y nada se cruza.
 
-Desde ahí, cada `git push` publica solo. Sin límites, sin créditos.
+El límite: sin login, los datos de cada quien están atados a ese navegador. Si
+cambia de teléfono o borra los datos del navegador, se pierden (por eso está
+*Exportar respaldo*). Para que cada persona pueda entrar con su cuenta desde
+donde sea, ver la sección de arriba sobre `supabase-cimientos.sql`.
 
 En el celular: abrís la URL → **Compartir → Agregar a inicio**. Queda como
 una app nativa, con ícono, y ahí funcionan las notificaciones en iPhone.

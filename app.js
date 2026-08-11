@@ -2023,7 +2023,9 @@ function importar(archivo){
 
 const reposo = {
   activo:false, m:null, minutos:5, finEn:0, raf:null, reloj:null, t:0,
-  audio:null, nodos:null, sonando:true,
+  audio:null, nodos:null, sonando:true, musica:null,
+  tempoPad:null, tempoCampana:null, aliento:0.55,
+  bajo:null, bctx:null, manchas:[], motas:[],
   ctx:null, lienzo:null, contado:false,
 
   abrir(maxima){
@@ -2043,6 +2045,7 @@ const reposo = {
     document.body.style.overflow = 'hidden';
     this.activo = true; this.contado = false;
     this.finEn = 0; this.t = 0;
+    this.sortearEscena();
     this.medir();
     this.loop();
   },
@@ -2052,6 +2055,40 @@ const reposo = {
     this.W = this.lienzo.clientWidth; this.H = this.lienzo.clientHeight;
     this.lienzo.width = this.W * dpr; this.lienzo.height = this.H * dpr;
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // La capa de color se pinta chiquita y se agranda: sale difuminada
+    // gratis y no le cuesta nada al teléfono.
+    this.bajo ??= document.createElement('canvas');
+    this.bajo.width = 150;
+    this.bajo.height = Math.max(1, Math.round(150 * this.H / Math.max(this.W, 1)));
+    this.bctx = this.bajo.getContext('2d');
+  },
+
+  // Cada sesión tiene su propia paleta y sus propios movimientos.
+  sortearEscena(){
+    const base = Math.random() * 360;
+    const paleta = [base, (base + 40) % 360, (base + 300) % 360, (base + 190) % 360];
+
+    this.manchas = Array.from({length:6}, (_, i) => ({
+      tono: paleta[i % paleta.length] + (Math.random()*30 - 15),
+      sat:  42 + Math.random() * 24,
+      luz:  23 + Math.random() * 13,
+      a:    0.23 + Math.random() * 0.17,
+      r:    0.34 + Math.random() * 0.44,
+      ax:   0.20 + Math.random() * 0.36,
+      ay:   0.20 + Math.random() * 0.36,
+      vx:   0.020 + Math.random() * 0.055,
+      vy:   0.018 + Math.random() * 0.050,
+      f:    Math.random() * 6.28
+    }));
+
+    this.motas = Array.from({length:44}, () => ({
+      x: Math.random(), y: Math.random(),
+      r: 0.5 + Math.random() * 1.7,
+      v: 0.004 + Math.random() * 0.014,
+      f: Math.random() * 6.28,
+      a: 0.10 + Math.random() * 0.30
+    }));
   },
 
   empezar(){
@@ -2087,64 +2124,179 @@ const reposo = {
     render();
   },
 
-  /* ---------- sonido ---------- */
+  /* ---------- música ----------
+     Generativa y distinta cada vez: se sortea la tónica y el modo, y a
+     partir de ahí un pad que respira, campanas espaciadas con eco largo
+     y un sub grave. La reverb es una respuesta al impulso fabricada acá
+     (ruido con caída exponencial), que es lo que da la profundidad.
+     Nada de esto es un archivo: no depende de internet ni de nadie. */
+
+  MODOS: {
+    'pentatónica menor': [0, 3, 5, 7, 10],
+    'dórico':            [0, 2, 3, 5, 7, 9, 10],
+    'lidio':             [0, 2, 4, 6, 7, 9, 11],
+    'pentatónica mayor': [0, 2, 4, 7, 9],
+    'frigio':            [0, 1, 3, 5, 7, 8, 10]
+  },
+
+  sortearMusica(){
+    const nombres = Object.keys(this.MODOS);
+    const modo = nombres[Math.floor(Math.random() * nombres.length)];
+    const raiz = 55 * Math.pow(2, Math.floor(Math.random() * 5) / 12);   // La grave, ± unos semitonos
+    return { modo, escala: this.MODOS[modo], raiz };
+  },
+
+  nota(grado, octava = 0){
+    const e = this.musica.escala;
+    const i = ((grado % e.length) + e.length) % e.length;
+    const oct = octava + Math.floor(grado / e.length);
+    return this.musica.raiz * Math.pow(2, oct + e[i] / 12);
+  },
+
+  hacerReverb(a, segundos = 5.5){
+    const largo = Math.floor(a.sampleRate * segundos);
+    const buf = a.createBuffer(2, largo, a.sampleRate);
+    for (let ch = 0; ch < 2; ch++){
+      const d = buf.getChannelData(ch);
+      for (let i = 0; i < largo; i++){
+        // ruido que se apaga: una sala grande y blanda
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / largo, 2.6);
+      }
+    }
+    const c = a.createConvolver(); c.buffer = buf;
+    return c;
+  },
 
   sonar(){
     try{
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
-      const a = new AudioContext();
+      const a = new AC();
       this.audio = a;
+      this.musica = this.sortearMusica();
+
+      const limite = a.createDynamicsCompressor();
+      limite.threshold.value = -14; limite.ratio.value = 6;
+      limite.connect(a.destination);
 
       const maestro = a.createGain();
       maestro.gain.setValueAtTime(0.0001, a.currentTime);
-      maestro.gain.exponentialRampToValueAtTime(0.09, a.currentTime + 4);
-      maestro.connect(a.destination);
+      maestro.gain.exponentialRampToValueAtTime(0.5, a.currentTime + 8);
+      maestro.connect(limite);
 
-      // dos senos en quinta, con una desafinación mínima que hace el latido
-      const drone = [110, 164.81, 110.4].map(f => {
-        const o = a.createOscillator(); o.type = 'sine'; o.frequency.value = f;
-        const g = a.createGain(); g.gain.value = f === 164.81 ? 0.22 : 0.34;
-        o.connect(g); g.connect(maestro); o.start();
-        return o;
-      });
+      const rev = this.hacerReverb(a, 6);
+      const revG = a.createGain(); revG.gain.value = 0.85;
+      rev.connect(revG); revG.connect(maestro);
 
-      // ruido suave, como aire en la habitación
-      const largo = a.sampleRate * 4;
-      const buffer = a.createBuffer(1, largo, a.sampleRate);
-      const datos = buffer.getChannelData(0);
-      let ultimo = 0;
-      for (let i = 0; i < largo; i++){
-        const blanco = Math.random() * 2 - 1;
-        ultimo = (ultimo + 0.02 * blanco) / 1.02;   // hacia grave
-        datos[i] = ultimo * 3.2;
-      }
-      const ruido = a.createBufferSource();
-      ruido.buffer = buffer; ruido.loop = true;
-      const filtro = a.createBiquadFilter();
-      filtro.type = 'lowpass'; filtro.frequency.value = 480;
-      const gr = a.createGain(); gr.gain.value = 0.5;
-      ruido.connect(filtro); filtro.connect(gr); gr.connect(maestro); ruido.start();
+      // --- sub grave, la base sobre la que se apoya todo ---
+      const sub = a.createOscillator(); sub.type = 'sine';
+      sub.frequency.value = this.musica.raiz / 2;
+      const subG = a.createGain(); subG.gain.value = 0.16;
+      sub.connect(subG); subG.connect(maestro); sub.start();
 
-      // el filtro se abre y se cierra despacio: da movimiento sin melodía
-      const lfo = a.createOscillator(); lfo.frequency.value = 0.05;
-      const lfoG = a.createGain(); lfoG.gain.value = 180;
-      lfo.connect(lfoG); lfoG.connect(filtro.frequency); lfo.start();
+      // --- eco largo para las campanas ---
+      const eco = a.createDelay(6);
+      eco.delayTime.value = 2.4 + Math.random() * 1.4;
+      const ecoG = a.createGain(); ecoG.gain.value = 0.42;
+      const ecoF = a.createBiquadFilter(); ecoF.type = 'lowpass'; ecoF.frequency.value = 1600;
+      eco.connect(ecoF); ecoF.connect(ecoG); ecoG.connect(eco);
+      ecoG.connect(rev); ecoG.connect(maestro);
 
-      this.nodos = { maestro, drone, ruido, lfo };
+      this.nodos = { maestro, rev, eco, limite, voces:[] };
+
+      // --- pad: un acorde que se sostiene y se cambia cada tanto ---
+      const acorde = grados => {
+        const a2 = this.audio; if (!a2) return;
+        const t0 = a2.currentTime;
+        const g = a2.createGain();
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.12, t0 + 9);
+        g.gain.setValueAtTime(0.12, t0 + 20);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 32);
+
+        const filtro = a2.createBiquadFilter();
+        filtro.type = 'lowpass'; filtro.frequency.value = 520; filtro.Q.value = 0.7;
+        const lfo = a2.createOscillator(); lfo.frequency.value = 0.035;
+        const lfoG = a2.createGain(); lfoG.gain.value = 260;
+        lfo.connect(lfoG); lfoG.connect(filtro.frequency); lfo.start();
+
+        g.connect(filtro); filtro.connect(maestro);
+        const envio = a2.createGain(); envio.gain.value = 0.6;
+        filtro.connect(envio); envio.connect(rev);
+
+        const osc = [];
+        for (const gr of grados){
+          for (const det of [-4, 4]){
+            const o = a2.createOscillator();
+            o.type = 'triangle';
+            o.frequency.value = this.nota(gr, 1);
+            o.detune.value = det;
+            o.connect(g); o.start(t0); o.stop(t0 + 34);
+            osc.push(o);
+          }
+        }
+        setTimeout(() => { try{ lfo.stop(); }catch(e){} }, 35000);
+      };
+
+      // --- campana: una nota suelta que se va apagando ---
+      const campana = () => {
+        const a2 = this.audio; if (!a2) return;
+        const t0 = a2.currentTime;
+        const gr = Math.floor(Math.random() * 5);
+        const f = this.nota(gr, 2 + (Math.random() < 0.3 ? 1 : 0));
+
+        const g = a2.createGain();
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.09, t0 + 0.06);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 7);
+
+        const pan = a2.createStereoPanner ? a2.createStereoPanner() : null;
+        if (pan) pan.pan.value = Math.random() * 1.6 - 0.8;
+
+        const o1 = a2.createOscillator(); o1.type = 'sine';     o1.frequency.value = f;
+        const o2 = a2.createOscillator(); o2.type = 'triangle'; o2.frequency.value = f * 2.01;
+        const g2 = a2.createGain(); g2.gain.value = 0.25;
+        o1.connect(g); o2.connect(g2); g2.connect(g);
+
+        const salida = pan || g;
+        if (pan) g.connect(pan);
+        salida.connect(maestro); salida.connect(eco); salida.connect(rev);
+
+        o1.start(t0); o2.start(t0); o1.stop(t0 + 8); o2.stop(t0 + 8);
+      };
+
+      // progresión: la tónica siempre vuelve, el resto se sortea
+      const progresion = [[0,2,4], [3,5,0], [0,2,4], [4,6,1], [2,4,6]];
+      let paso = 0;
+      acorde(progresion[0]);
+      this.tempoPad = setInterval(() => {
+        paso = (paso + 1) % progresion.length;
+        acorde(progresion[paso]);
+      }, 26000);
+
+      const siguienteCampana = () => {
+        if (!this.audio) return;
+        campana();
+        this.tempoCampana = setTimeout(siguienteCampana, 4500 + Math.random() * 9000);
+      };
+      this.tempoCampana = setTimeout(siguienteCampana, 3000);
+
     }catch(e){ /* sin sonido, el cuarto sigue sirviendo */ }
   },
 
   callar(){
+    clearInterval(this.tempoPad); this.tempoPad = null;
+    clearTimeout(this.tempoCampana); this.tempoCampana = null;
     if (!this.audio) return;
     try{
       const a = this.audio, g = this.nodos?.maestro;
       if (g){
         g.gain.cancelScheduledValues(a.currentTime);
         g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), a.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 1.4);
+        g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 2.5);
       }
-      setTimeout(() => { try{ a.close(); }catch(e){} }, 1600);
+      const viejo = a;
+      setTimeout(() => { try{ viejo.close(); }catch(e){} }, 2800);
     }catch(e){}
     this.audio = null; this.nodos = null;
   },
@@ -2198,24 +2350,65 @@ const reposo = {
     this.t += 1/60;
     const { ctx, W, H } = this;
 
-    ctx.clearRect(0, 0, W, H);
+    // ---- capa de color, en baja y aditiva ----
+    const b = this.bajo, bw = b.width, bh = b.height, bc = this.bctx;
+    bc.globalCompositeOperation = 'source-over';
+    bc.fillStyle = '#04050a';
+    bc.fillRect(0, 0, bw, bh);
+    bc.globalCompositeOperation = 'lighter';
 
-    // manchas de luz muy lentas: el cuarto respira aunque vos no
-    const manchas = [
-      { x:.30, y:.30, r:.95, c:this.color,  f:0.041, a:.30 },
-      { x:.74, y:.64, r:1.05, c:'#4a5a72',  f:0.029, a:.34 },
-      { x:.50, y:.92, r:.90, c:'#6b5a72',   f:0.023, a:.26 }
-    ];
-    for (const s of manchas){
-      const dx = Math.sin(this.t * s.f * 6.283) * 0.10;
-      const dy = Math.cos(this.t * s.f * 4.9) * 0.08;
-      const cx = (s.x + dx) * W, cy = (s.y + dy) * H, r = s.r * Math.max(W, H) * 0.62;
-      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-      g.addColorStop(0, hexA(s.c, s.a));
-      g.addColorStop(1, hexA(s.c, 0));
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, W, H);
+    for (const m of this.manchas){
+      const x = (0.5 + Math.sin(this.t * m.vx * 6.283 + m.f) * m.ax) * bw;
+      const y = (0.5 + Math.cos(this.t * m.vy * 6.283 + m.f * 1.7) * m.ay) * bh;
+      const r = m.r * Math.max(bw, bh) * (1 + Math.sin(this.t * 0.09 + m.f) * 0.22);
+      const tono = (m.tono + this.t * 1.1) % 360;      // deriva lentísima de color
+      const g = bc.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0,   `hsla(${tono}, ${m.sat}%, ${m.luz + 10}%, ${m.a})`);
+      g.addColorStop(0.45, `hsla(${tono}, ${m.sat}%, ${m.luz}%, ${m.a * 0.42})`);
+      g.addColorStop(1,   `hsla(${tono}, ${m.sat}%, ${m.luz}%, 0)`);
+      bc.fillStyle = g;
+      bc.beginPath(); bc.arc(x, y, r, 0, 7); bc.fill();
     }
+    bc.globalCompositeOperation = 'source-over';
+
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(b, 0, 0, W, H);
+
+    // un velo encima: que sea profundo, no que encandile
+    ctx.fillStyle = 'rgba(4,5,10,0.18)';
+    ctx.fillRect(0, 0, W, H);
+
+    // ---- anillos que laten con la respiración ----
+    ctx.globalCompositeOperation = 'lighter';
+    const cx = W/2, cy = H/2;
+    const base = Math.min(W, H) * 0.20;
+    for (let i = 0; i < 5; i++){
+      const r = base * (1 + i * 0.55) * (0.82 + this.aliento * 0.34);
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7);
+      ctx.strokeStyle = `rgba(255,250,240,${(0.075 - i * 0.011).toFixed(3)})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // ---- motas flotando ----
+    for (const p of this.motas){
+      const y = ((p.y - this.t * p.v) % 1 + 1) % 1;
+      const x = (p.x + Math.sin(this.t * 0.12 + p.f) * 0.03);
+      const brillo = p.a * (0.55 + 0.45 * Math.sin(this.t * 0.6 + p.f));
+      ctx.beginPath();
+      ctx.arc(x * W, y * H, p.r, 0, 7);
+      ctx.fillStyle = `rgba(255,248,235,${brillo.toFixed(3)})`;
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+
+    // ---- viñeta: hunde los bordes para que la frase se lea ----
+    const v = ctx.createRadialGradient(cx, cy, Math.min(W,H) * 0.16, cx, cy, Math.max(W,H) * 0.72);
+    v.addColorStop(0, 'rgba(4,5,10,0)');
+    v.addColorStop(0.55, 'rgba(4,5,10,0.34)');
+    v.addColorStop(1, 'rgba(4,5,10,0.92)');
+    ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
 
     // respiración 4 dentro · 2 sostener · 6 afuera
     if (this.finEn){
@@ -2225,6 +2418,7 @@ const reposo = {
       if (f < 4){         escala = 0.55 + (f/4) * 0.45;        guia = 'Inhalá'; }
       else if (f < 6){    escala = 1;                          guia = 'Sostené'; }
       else {              escala = 1 - ((f-6)/6) * 0.45;       guia = 'Soltá'; }
+      this.aliento = escala;
 
       const al = $('.rep-aliento');
       al.querySelector('i').style.transform = `scale(${escala.toFixed(3)})`;

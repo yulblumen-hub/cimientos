@@ -41,10 +41,22 @@ propio, y las que más volviste brillan más grande. Se arrastra para moverse.
 ### Reposo
 
 La otra forma de volver a una frase, sin esperar la rotación. Entrás a un
-cuarto a oscuras: la frase, una respiración guiada (4 dentro · 2 sostener · 6
-afuera) y un temporizador de 3, 5 o 10 minutos, con un fondo que se mueve
-despacio y un sonido sintetizado en el momento —dos senos en quinta y ruido
-filtrado— así que no depende de ningún archivo ni de internet.
+cuarto: la frase, una respiración guiada (4 dentro · 2 sostener · 6 afuera) y
+un temporizador de 3, 5 o 10 minutos.
+
+**La música es generativa y distinta cada vez.** Se sortea la tónica y el modo
+—pentatónica menor, dórico, lidio, frigio— y sobre eso corre un pad que entra
+y sale cada 26 segundos, campanas espaciadas al azar con un eco de varios
+segundos, y un sub grave de base. La reverb es una respuesta al impulso
+fabricada en el momento (ruido con caída exponencial), que es lo que da la
+profundidad. Ni un archivo de audio: no depende de internet ni de los derechos
+de nadie.
+
+**El fondo** son seis manchas de color aditivas pintadas en baja resolución y
+escaladas —sale difuminado gratis y no le cuesta nada al teléfono— con la
+paleta sorteada por sesión y una deriva de tono lentísima, más anillos que
+laten con tu respiración, motas flotando y una viñeta que hunde los bordes
+para que la frase se lea.
 
 Cuando el tiempo termina, el día queda marcado y se registra aparte cuánto
 tiempo le diste: no es lo mismo tocar un botón que sentarse cinco minutos.

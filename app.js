@@ -563,7 +563,7 @@ function render(){
   if (vista === 'maximas')    renderMaximas();
   if (vista === 'diario')     renderDiario();
   if (vista === 'lecturas')   renderLecturas();
-  if (vista === 'manifiesto') renderManifiesto();
+  if (vista === 'manifiesto') renderYo();
   if (vista === 'ajustes')    renderAjustes();
 }
 
@@ -1257,6 +1257,114 @@ function textoManifiesto(){
     lineas.push('');
   });
   return lineas.join('\n').trim();
+}
+
+/* ------------------------------------------------------------
+   EN OBRA
+   La respuesta a "¿a dónde van los me resonó?". Van acá: una obra
+   que se levanta de abajo hacia arriba. Abajo, lo que ya es
+   cimiento; arriba, lo que recién estás colocando. El ancho de
+   cada pieza es cuántos días la volviste a elegir.
+   ------------------------------------------------------------ */
+
+const DIAS_ACTIVA = 14;
+
+const ultimaMarca = m => (m.historial || []).slice(-1)[0] || null;
+const estaActiva  = m => { const u = ultimaMarca(m); return u && diasDesde(u) <= DIAS_ACTIVA; };
+
+function renderObra(){
+  const cont = $('#manifiestoBody');
+  const ms = db.datos.maximas.filter(m => diasDe(m) > 0);
+  const foco = pilarDe(db.datos.config.focoPilarId);
+
+  if (!ms.length){
+    cont.innerHTML = `
+      <div class="mf-vacio">
+        <p>Todavía no colocaste ninguna pieza.</p>
+        <small>Cada vez que marcás “me resonó” en Hoy, esa frase aparece acá
+        y empieza a subir. Esto es lo que se está construyendo con eso.</small>
+      </div>`;
+    return;
+  }
+
+  const enObra   = ms.filter(m => !esCimiento(m)).length;
+  const firmes   = ms.filter(enManifiesto).length;
+  const activas  = ms.filter(estaActiva).sort((a,b) => (ultimaMarca(b) || '').localeCompare(ultimaMarca(a) || ''));
+
+  // de arriba (lo que recién colocás) hacia abajo (lo que ya sostiene)
+  const orden = ['practica','marcada','arraigada','sostenida','cimiento'];
+
+  const ladrillos = clave => {
+    const piezas = ms.filter(m => gradoDe(m).clave === clave);
+    if (!piezas.length) return `<div class="capa-vacia">—</div>`;
+    return piezas.map(m => {
+      const p = pilarDe(m.pilarId);
+      // el ancho ES la repetición: una pieza de 400 días ocupa toda la hilada,
+      // una de 3 días entra de a dos
+      const peso = Math.pow(Math.min(diasDe(m), 365) / 365, 0.4);
+      const ancho = (44 + peso * 54).toFixed(1);
+      return `<button type="button" class="ladrillo" data-maxima="${m.id}"
+        style="--c:${esc(p?.color || 'var(--texto-3)')};width:${ancho}%"
+        title="${esc(m.texto)}">
+        <span>${esc(recortar(m.texto, 30))}</span>
+        <i>${diasDe(m)}d</i>
+      </button>`;
+    }).join('');
+  };
+
+  cont.innerHTML = `
+    <div class="obra-stats">
+      <div><b>${enObra}</b><span>en obra</span></div>
+      <div><b>${firmes}</b><span>en el manifiesto</span></div>
+      <div><b>${ms.filter(esCimiento).length}</b><span>cimientos</span></div>
+    </div>
+
+    ${foco ? `<p class="obra-foco" style="--c:${esc(foco.color)}">
+      Esta semana estás laburando <b>${esc(foco.nombre)}</b>.
+    </p>` : ''}
+
+    <div class="obra">
+      ${orden.map(clave => {
+        const g = GRADOS.find(x => x.clave === clave);
+        return `
+          <div class="capa capa-${clave}">
+            <div class="capa-nombre"><span>${esc(g.nombre)}</span><i>${g.min === 1 ? '1 día' : g.min + ' días'}</i></div>
+            <div class="ladrillos">${ladrillos(clave)}</div>
+          </div>`;
+      }).join('')}
+      <div class="obra-suelo">tus cimientos</div>
+    </div>
+
+    <div class="obra-activas">
+      <div class="lec-titulo" style="--c:var(--texto-3)">Lo que estás laburando ahora</div>
+      ${activas.length ? activas.map(m => {
+        const p = pilarDe(m.pilarId);
+        const g = proximoGrado(m);
+        const u = diasDesde(ultimaMarca(m));
+        return `
+          <article class="mx" data-maxima="${m.id}" style="--c:${esc(p?.color || 'var(--texto-3)')}">
+            <div class="mx-txt">${esc(m.texto)}</div>
+            <div class="mx-pie">
+              <span>${esc(p?.nombre || 'Sin pilar')}</span>
+              <span>· ${diasDe(m)} d</span>
+              ${g ? `<span>· faltan ${g.min - diasDe(m)} para ${esc(g.nombre)}</span>` : ''}
+              <span>· ${u === 0 ? 'marcada hoy' : u === 1 ? 'ayer' : `hace ${u} días`}</span>
+            </div>
+          </article>`;
+      }).join('') : `<p class="nota-tec">Nada en los últimos ${DIAS_ACTIVA} días. Marcá una frase en Hoy y aparece acá.</p>`}
+    </div>`;
+}
+
+let segYo = 'obra';
+
+function renderYo(){
+  $$('#segYo button').forEach(b => b.classList.toggle('on', b.dataset.seg === segYo));
+  $('#yoTitulo').textContent = segYo === 'obra' ? 'En obra' : 'Manifiesto';
+  $('#btnCompartir').hidden = segYo !== 'manifiesto';
+  $('#yoSub').textContent = segYo === 'obra'
+    ? 'A dónde van tus “me resonó”. Cada marca coloca una pieza; las de abajo ya sostienen.'
+    : 'Esto no lo escribís de una. Se escribe solo, a medida que una frase aguanta la repetición.';
+  return segYo === 'obra' ? renderObra() : renderManifiesto();
 }
 
 function renderManifiesto(){
@@ -2613,6 +2721,16 @@ function cablear(){
   });
 
   // ---- MANIFIESTO ----
+  $('#segYo').addEventListener('click', ev => {
+    const b = ev.target.closest('[data-seg]');
+    if (!b) return;
+    segYo = b.dataset.seg; renderYo();
+  });
+  $('#manifiestoBody').addEventListener('click', ev => {
+    const b = ev.target.closest('[data-maxima]');
+    if (b) verMaxima(b.dataset.maxima);
+  });
+
   $('#btnCompartir').onclick = async () => {
     const t = textoManifiesto();
     if (!t) return avisar('Todavía no hay cimientos');

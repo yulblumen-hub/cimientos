@@ -157,10 +157,16 @@
   <!-- ============ MANIFIESTO ============ -->
   <section class="view" data-view="manifiesto" hidden>
     <header class="view-head">
-      <h1>Manifiesto</h1>
-      <button class="btn-ghost" id="btnCompartir" type="button">Copiar</button>
+      <h1 id="yoTitulo">En obra</h1>
+      <button class="btn-ghost" id="btnCompartir" type="button" hidden>Copiar</button>
     </header>
-    <p class="view-sub">Esto no lo escribís de una. Se escribe solo, a medida que una frase se vuelve cimiento.</p>
+
+    <div class="segmento" id="segYo">
+      <button type="button" class="on" data-seg="obra">En obra</button>
+      <button type="button" data-seg="manifiesto">Manifiesto</button>
+    </div>
+
+    <p class="view-sub" id="yoSub"></p>
     <div class="manifiesto" id="manifiestoBody"></div>
   </section>
 

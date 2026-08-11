@@ -21,12 +21,12 @@ Tres capas:
 ### La escalera
 
 ```
-Nueva → En práctica (1) → Marcada (12) → Arraigada (30) → Sostenida (90) → Cimiento (365)
+Nueva → En práctica (1) → Marcada (12) → Arraigada (30) → Sostenida (90) → Cimiento (180)
 ```
 
 Cuenta **días distintos, no toques**: una marca por día y se acabó. Desde
 *Marcada* la frase entra al manifiesto; cimiento de verdad es solo la que te
-acompañó un año entero.
+acompañó medio año.
 
 Por eso el grado **no se puede elegir a mano**. Un principio no se declara: se
 gana volviendo. Cada día marcado deja un punto, y los hitos quedan señalados —
@@ -37,6 +37,22 @@ la repetición se ve acumulada, no como un número suelto.
 Las frases también se navegan como un espacio. Cada pilar es una región, las
 del mismo pilar quedan unidas por hilos, las que comparten autor por un hilo
 propio, y las que más volviste brillan más grande. Se arrastra para moverse.
+
+### Reposo
+
+La otra forma de volver a una frase, sin esperar la rotación. Entrás a un
+cuarto a oscuras: la frase, una respiración guiada (4 dentro · 2 sostener · 6
+afuera) y un temporizador de 3, 5 o 10 minutos, con un fondo que se mueve
+despacio y un sonido sintetizado en el momento —dos senos en quinta y ruido
+filtrado— así que no depende de ningún archivo ni de internet.
+
+Cuando el tiempo termina, el día queda marcado y se registra aparte cuánto
+tiempo le diste: no es lo mismo tocar un botón que sentarse cinco minutos.
+El temporizador va contra la hora real, no contra la animación, para que
+bloquear el teléfono no lo deje colgado.
+
+Desde cualquier máxima también podés **traerla a Hoy**, que es la respuesta
+directa a "¿cómo hago para que esta me vuelva a resonar?".
 
 ### Conversaciones
 

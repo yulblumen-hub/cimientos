@@ -46,6 +46,9 @@
       <button class="acc" id="accEscribir" type="button">
         <span class="acc-ico">✎</span><span class="acc-txt">Escribir</span>
       </button>
+      <button class="acc acc-reposo" id="accReposo" type="button">
+        <span class="acc-ico">◍</span><span class="acc-txt">Meditarla</span>
+      </button>
       <button class="acc" id="accOtra" type="button">
         <span class="acc-ico">↻</span><span class="acc-txt">Otra</span>
       </button>
@@ -123,7 +126,7 @@
       <button type="button" class="f" data-estado="marcada">Marcadas · 12</button>
       <button type="button" class="f" data-estado="arraigada">Arraigadas · 30</button>
       <button type="button" class="f" data-estado="sostenida">Sostenidas · 90</button>
-      <button type="button" class="f" data-estado="cimiento">Cimientos · 365</button>
+      <button type="button" class="f" data-estado="cimiento">Cimientos · 180</button>
     </div>
     <div class="filtros filtros-pilar" id="filtrosPilar"></div>
 
@@ -219,7 +222,7 @@
         <li><b>Marcada</b><span>12 días</span></li>
         <li><b>Arraigada</b><span>30 días</span></li>
         <li><b>Sostenida</b><span>90 días</span></li>
-        <li><b>Cimiento</b><span>365 días</span></li>
+        <li><b>Cimiento</b><span>180 días</span></li>
       </ol>
       <p class="nota-tec">
         Cuentan días distintos, no toques: una marca por día y se acabó.
@@ -260,6 +263,50 @@
   <div class="sheet-caja" role="dialog" aria-modal="true">
     <div class="sheet-barra"><span data-cerrar>✕</span></div>
     <div class="sheet-cuerpo" id="sheetCuerpo"></div>
+  </div>
+</div>
+
+<!-- ============ CUARTO / REPOSO ============ -->
+<div id="reposo" hidden>
+  <canvas id="reposoFondo"></canvas>
+
+  <button type="button" id="reposoSalir" aria-label="Salir">✕</button>
+  <button type="button" id="reposoSonido" aria-label="Sonido">♪</button>
+
+  <div class="rep-centro">
+    <div class="rep-aliento"><i></i><b></b></div>
+    <blockquote class="rep-texto" id="reposoTexto"></blockquote>
+    <div class="rep-fuente" id="reposoFuente"></div>
+  </div>
+
+  <div class="rep-pie">
+    <div class="rep-guia" id="reposoGuia">Inhalá</div>
+    <div class="rep-reloj" id="reposoReloj">5:00</div>
+  </div>
+
+  <!-- antesala: elegir cuánto -->
+  <div class="rep-antesala" id="reposoAntesala">
+    <div class="rep-antesala-caja">
+      <div class="rep-titulo">Un momento con esta frase</div>
+      <p>Cinco minutos sin hacer nada más. Leerla, respirarla, y después
+      dejarla decantar. Cuando termine el tiempo, queda marcada.</p>
+      <div class="pick-estado" id="reposoMinutos">
+        <button type="button" data-min="3">3 min</button>
+        <button type="button" data-min="5" class="on">5 min</button>
+        <button type="button" data-min="10">10 min</button>
+      </div>
+      <button type="button" class="btn-primario" id="reposoEmpezar" style="width:100%;margin-top:16px">Empezar</button>
+      <button type="button" class="link" id="reposoCancelar" style="display:block;margin:14px auto 0">ahora no</button>
+    </div>
+  </div>
+
+  <!-- cierre -->
+  <div class="rep-cierre" id="reposoCierre" hidden>
+    <div class="rep-antesala-caja">
+      <div class="rep-titulo">Dejala decantar</div>
+      <p id="reposoCierreTxt"></p>
+      <button type="button" class="btn-primario" id="reposoListo" style="width:100%;margin-top:16px">Listo</button>
+    </div>
   </div>
 </div>
 

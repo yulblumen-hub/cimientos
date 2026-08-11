@@ -275,7 +275,7 @@ button{ background:none; border:0; cursor:pointer; }
 
 /* --- acciones --- */
 .hoy-acciones{
-  display:grid; grid-template-columns:repeat(4,1fr); gap:8px;
+  display:grid; grid-template-columns:repeat(5,1fr); gap:4px;
   padding-top:6px; border-top:1px solid var(--linea-2);
 }
 .acc{
@@ -284,7 +284,7 @@ button{ background:none; border:0; cursor:pointer; }
   color:var(--texto-2); transition:.15s;
 }
 .acc-ico{ font-size:18px; line-height:1; }
-.acc-txt{ font-size:10.5px; letter-spacing:.02em; }
+.acc-txt{ font-size:9.5px; letter-spacing:.01em; text-align:center; }
 .acc:active{ background:var(--bg-alto); }
 .acc.activa{ color:var(--c, var(--texto)); }
 .acc.pulso{ animation:pulso .45s ease; }
@@ -906,3 +906,107 @@ button{ background:none; border:0; cursor:pointer; }
   border-radius:0 0 var(--r) var(--r);
 }
 .obra-activas .mx{ margin-bottom:8px; }
+
+/* ============================================================
+   REPOSO
+   Un cuarto, no una pantalla. Siempre oscuro y sin mobiliario:
+   la frase, la respiración y el tiempo.
+   ============================================================ */
+#reposo{
+  position:fixed; inset:0; z-index:95;
+  background:#07080c;
+  overscroll-behavior:none; touch-action:none;
+  animation:fundir .6s ease both;
+  display:flex; flex-direction:column;
+}
+#reposo[hidden]{ display:none !important; }
+#reposoFondo{ position:absolute; inset:0; width:100%; height:100%; }
+
+#reposoSalir, #reposoSonido{
+  position:absolute; top:calc(var(--safe-t) + 14px); z-index:4;
+  width:38px; height:38px; border-radius:50%;
+  background:#ffffff0d; color:#cfc9c0; font-size:14px;
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  transition:.2s;
+}
+#reposoSalir{ right:14px; }
+#reposoSonido{ right:62px; }
+#reposoSonido.mudo{ opacity:.35; }
+
+.rep-centro{
+  position:relative; z-index:2; flex:1;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:0 30px; text-align:center;
+}
+
+/* el aliento: se expande al inhalar y se suelta al exhalar */
+.rep-aliento{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:min(74vw, 300px); aspect-ratio:1; pointer-events:none;
+}
+.rep-aliento i, .rep-aliento b{
+  position:absolute; inset:0; border-radius:50%;
+  transition:transform 1s linear, opacity 1s linear;
+}
+.rep-aliento i{ border:1px solid #ffffff1f; }
+.rep-aliento b{
+  background:radial-gradient(circle, #b9a98422 0%, transparent 68%);
+}
+
+.rep-texto{
+  position:relative; z-index:3; margin:0;
+  font-family:var(--serif);
+  font-size:clamp(22px, 6.2vw, 32px); line-height:1.4;
+  color:#f2eee6; text-wrap:balance;
+  text-shadow:0 2px 30px #000000aa;
+}
+.rep-fuente{
+  position:relative; z-index:3; margin-top:18px;
+  font-size:13px; color:#ffffff55; font-style:italic;
+}
+
+.rep-pie{
+  position:relative; z-index:3;
+  padding:0 30px calc(var(--safe-b) + 40px);
+  text-align:center;
+}
+.rep-guia{
+  font-size:11px; letter-spacing:.24em; text-transform:uppercase;
+  color:#ffffff55; transition:opacity .5s ease; min-height:14px;
+}
+.rep-reloj{
+  margin-top:14px; font-family:var(--serif);
+  font-size:26px; color:#ffffff4d; letter-spacing:.04em;
+}
+
+/* antesala y cierre comparten caja */
+.rep-antesala, .rep-cierre{
+  position:absolute; inset:0; z-index:6;
+  display:flex; align-items:flex-end; justify-content:center;
+  background:#05060ac9;
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  animation:fundir .3s ease both;
+}
+.rep-antesala[hidden], .rep-cierre[hidden]{ display:none !important; }
+.rep-antesala-caja{
+  width:100%; max-width:600px;
+  padding:26px 22px calc(var(--safe-b) + 26px);
+  animation:subir .35s cubic-bezier(.2,.9,.25,1) both;
+}
+.rep-titulo{
+  font-family:var(--serif); font-size:24px; color:#f2eee6; margin-bottom:12px;
+}
+.rep-antesala-caja p{
+  font-size:14px; line-height:1.6; color:#ffffff77; margin:0 0 20px;
+}
+.rep-antesala-caja .pick-estado button{
+  border-color:#ffffff26; color:#d8d2c9;
+}
+.rep-antesala-caja .pick-estado button.on{
+  background:#ede8e0; border-color:#ede8e0; color:#14140f;
+}
+.rep-antesala-caja .btn-primario{ background:#ede8e0; color:#14140f; }
+.rep-antesala-caja .link{ color:#ffffff55; }
+
+/* botón para entrar al cuarto, en Hoy */
+.acc.acc-reposo .acc-ico{ font-size:17px; }

@@ -358,7 +358,7 @@ const GRADOS = [
   { min:12,  clave:'marcada',   nombre:'Marcada' },
   { min:30,  clave:'arraigada', nombre:'Arraigada' },
   { min:90,  clave:'sostenida', nombre:'Sostenida' },
-  { min:365, clave:'cimiento',  nombre:'Cimiento' }
+  { min:180, clave:'cimiento',  nombre:'Cimiento' }
 ];
 
 // Cuántos días distintos volviste a esta frase.
@@ -375,7 +375,7 @@ const proximoGrado = m => GRADOS.find(x => x.min > diasDe(m)) || null;
 
 // Un grado "entra al manifiesto" a partir del tercer escalón.
 const enManifiesto = m => diasDe(m) >= 12;
-const esCimiento   = m => diasDe(m) >= 365;
+const esCimiento   = m => diasDe(m) >= 180;
 
 const marcadaHoy = m => (m.historial || []).includes(fechaISO());
 
@@ -684,7 +684,7 @@ function sumarResonancia(m){
 
   if (subio){
     avisar(ahora.clave === 'cimiento'
-      ? '◆ Un año volviendo. Ahora sí es un cimiento.'
+      ? '◆ Medio año volviendo. Ahora sí es un cimiento.'
       : `↑ ${ahora.nombre} · ${diasDe(m)} días`);
   }else{
     const p = proximoGrado(m);
@@ -1301,7 +1301,7 @@ function renderObra(){
       const p = pilarDe(m.pilarId);
       // el ancho ES la repetición: una pieza de 400 días ocupa toda la hilada,
       // una de 3 días entra de a dos
-      const peso = Math.pow(Math.min(diasDe(m), 365) / 365, 0.4);
+      const peso = Math.pow(Math.min(diasDe(m), 180) / 180, 0.4);
       const ancho = (44 + peso * 54).toFixed(1);
       return `<button type="button" class="ladrillo" data-maxima="${m.id}"
         style="--c:${esc(p?.color || 'var(--texto-3)')};width:${ancho}%"
@@ -1376,8 +1376,8 @@ function renderManifiesto(){
       <div class="mf-vacio">
         <p>Tu manifiesto está en blanco, y está bien.</p>
         <small>Cada día que una frase te resuene, marcala en Hoy. A los 12 días
-        distintos entra acá sola, y de ahí sigue subiendo: 30, 90, 365.
-        Recién al año de volver a ella es un cimiento de verdad.</small>
+        distintos entra acá sola, y de ahí sigue subiendo: 30, 90, 180.
+        Recién a los seis meses de volver a ella es un cimiento de verdad.</small>
       </div>`;
     return;
   }
@@ -1534,9 +1534,17 @@ function verMaxima(id){
     </div>
 
     <div class="sheet-acciones" style="margin-top:0">
-      <button type="button" class="btn-primario" id="vFav">${m.favorita ? '★ Quitar de favoritas' : '☆ Marcar favorita'}</button>
+      <button type="button" class="btn-primario" id="vMeditar">◍ Meditarla</button>
+      <button type="button" class="btn-sec" id="vTraer">Traerla a Hoy</button>
+    </div>
+    <div class="sheet-acciones" style="margin-top:9px">
+      <button type="button" class="btn-sec" id="vFav" style="flex:1">${m.favorita ? '★ Quitar de favoritas' : '☆ Marcar favorita'}</button>
       <button type="button" class="btn-sec" id="vEditar">Editar</button>
     </div>
+    ${m.meditaciones?.length ? `<p class="nota-tec" style="margin:12px 0 0">
+      ${m.meditaciones.length} ${m.meditaciones.length === 1 ? 'sesión' : 'sesiones'} de reposo ·
+      ${m.meditaciones.reduce((s,x)=>s+x.minutos,0)} minutos con esta frase.
+    </p>` : ''}
 
     <div class="campo" style="margin-top:26px">
       <label>Escribir sobre esta frase</label>
@@ -1559,6 +1567,13 @@ function verMaxima(id){
       cerrarSheet(); render(); avisar(m.favorita ? '★ Favorita' : 'Sacada de favoritas');
     };
     $('#vEditar', cuerpo).onclick = () => { cerrarSheet(); setTimeout(() => editarMaxima(m.id), 180); };
+    $('#vMeditar', cuerpo).onclick = () => { cerrarSheet(); setTimeout(() => reposo.abrir(m), 200); };
+    $('#vTraer', cuerpo).onclick = () => {
+      db.datos.config.hoy = { fecha:fechaISO(), maximaId:m.id };
+      m.ultimaVista = new Date().toISOString();
+      db.guardar(); cerrarSheet(); ir('hoy');
+      avisar('Es la frase de estos días');
+    };
     $('#vGuardarNota', cuerpo).onclick = () => {
       const t = $('#vNota', cuerpo).value.trim();
       if (!t) return avisar('Escribí algo primero');
@@ -1994,6 +2009,260 @@ function importar(archivo){
 }
 
 /* ============================================================
+   13a. REPOSO
+   ------------------------------------------------------------
+   La otra forma de volver a una frase, sin esperar la rotación.
+   Entrás a un cuarto: la frase, una respiración guiada y un
+   tiempo. Cuando el temporizador termina, queda marcada — y se
+   registra aparte cuánto tiempo le diste, porque no es lo mismo
+   tocar un botón que sentarse cinco minutos con ella.
+
+   El sonido se sintetiza acá mismo (dos senos y ruido filtrado):
+   nada de archivos externos, así el cuarto funciona sin internet.
+   ============================================================ */
+
+const reposo = {
+  activo:false, m:null, minutos:5, finEn:0, raf:null, reloj:null, t:0,
+  audio:null, nodos:null, sonando:true,
+  ctx:null, lienzo:null, contado:false,
+
+  abrir(maxima){
+    this.m = maxima;
+    if (!this.m) return;
+    this.lienzo = $('#reposoFondo');
+    this.ctx = this.lienzo.getContext('2d');
+
+    const p = pilarDe(this.m.pilarId);
+    $('#reposoTexto').textContent = this.m.texto;
+    $('#reposoFuente').textContent = this.m.fuente ? `— ${this.m.fuente}` : (p?.nombre || '');
+    this.color = p?.color || '#b9a984';
+
+    $('#reposo').hidden = false;
+    $('#reposoAntesala').hidden = false;
+    $('#reposoCierre').hidden = true;
+    document.body.style.overflow = 'hidden';
+    this.activo = true; this.contado = false;
+    this.finEn = 0; this.t = 0;
+    this.medir();
+    this.loop();
+  },
+
+  medir(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.W = this.lienzo.clientWidth; this.H = this.lienzo.clientHeight;
+    this.lienzo.width = this.W * dpr; this.lienzo.height = this.H * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  },
+
+  empezar(){
+    $('#reposoAntesala').hidden = true;
+    this.finEn = Date.now() + this.minutos * 60000;
+    if (this.sonando) this.sonar();
+    vibrar(10);
+
+    // El reloj va por su cuenta y contra la hora real. requestAnimationFrame
+    // se congela con la pantalla apagada: si el tiempo lo llevara la
+    // animación, bloquear el teléfono dejaría el temporizador colgado.
+    clearInterval(this.reloj);
+    this.reloj = setInterval(() => this.tictac(), 250);
+    this.tictac();
+  },
+
+  tictac(){
+    if (!this.finEn) return;
+    const resta = Math.max(0, this.finEn - Date.now());
+    const seg = Math.ceil(resta / 1000);
+    $('#reposoReloj').textContent = `${Math.floor(seg/60)}:${String(seg%60).padStart(2,'0')}`;
+    if (resta <= 0){ clearInterval(this.reloj); this.reloj = null; this.terminar(); }
+  },
+
+  cerrar(){
+    this.activo = false;
+    cancelAnimationFrame(this.raf);
+    clearInterval(this.reloj); this.reloj = null;
+    this.finEn = 0;
+    this.callar();
+    $('#reposo').hidden = true;
+    document.body.style.overflow = '';
+    render();
+  },
+
+  /* ---------- sonido ---------- */
+
+  sonar(){
+    try{
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const a = new AudioContext();
+      this.audio = a;
+
+      const maestro = a.createGain();
+      maestro.gain.setValueAtTime(0.0001, a.currentTime);
+      maestro.gain.exponentialRampToValueAtTime(0.09, a.currentTime + 4);
+      maestro.connect(a.destination);
+
+      // dos senos en quinta, con una desafinación mínima que hace el latido
+      const drone = [110, 164.81, 110.4].map(f => {
+        const o = a.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+        const g = a.createGain(); g.gain.value = f === 164.81 ? 0.22 : 0.34;
+        o.connect(g); g.connect(maestro); o.start();
+        return o;
+      });
+
+      // ruido suave, como aire en la habitación
+      const largo = a.sampleRate * 4;
+      const buffer = a.createBuffer(1, largo, a.sampleRate);
+      const datos = buffer.getChannelData(0);
+      let ultimo = 0;
+      for (let i = 0; i < largo; i++){
+        const blanco = Math.random() * 2 - 1;
+        ultimo = (ultimo + 0.02 * blanco) / 1.02;   // hacia grave
+        datos[i] = ultimo * 3.2;
+      }
+      const ruido = a.createBufferSource();
+      ruido.buffer = buffer; ruido.loop = true;
+      const filtro = a.createBiquadFilter();
+      filtro.type = 'lowpass'; filtro.frequency.value = 480;
+      const gr = a.createGain(); gr.gain.value = 0.5;
+      ruido.connect(filtro); filtro.connect(gr); gr.connect(maestro); ruido.start();
+
+      // el filtro se abre y se cierra despacio: da movimiento sin melodía
+      const lfo = a.createOscillator(); lfo.frequency.value = 0.05;
+      const lfoG = a.createGain(); lfoG.gain.value = 180;
+      lfo.connect(lfoG); lfoG.connect(filtro.frequency); lfo.start();
+
+      this.nodos = { maestro, drone, ruido, lfo };
+    }catch(e){ /* sin sonido, el cuarto sigue sirviendo */ }
+  },
+
+  callar(){
+    if (!this.audio) return;
+    try{
+      const a = this.audio, g = this.nodos?.maestro;
+      if (g){
+        g.gain.cancelScheduledValues(a.currentTime);
+        g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), a.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 1.4);
+      }
+      setTimeout(() => { try{ a.close(); }catch(e){} }, 1600);
+    }catch(e){}
+    this.audio = null; this.nodos = null;
+  },
+
+  alternarSonido(){
+    this.sonando = !this.sonando;
+    $('#reposoSonido').classList.toggle('mudo', !this.sonando);
+    if (!this.sonando) this.callar();
+    else if (this.finEn) this.sonar();
+  },
+
+  /* ---------- cierre ---------- */
+
+  terminar(){
+    if (this.contado) return;
+    this.contado = true;
+    this.callar();
+    vibrar(60);
+
+    const m = this.m;
+    m.meditaciones ??= [];
+    m.meditaciones.push({ fecha:new Date().toISOString(), minutos:this.minutos });
+
+    const yaEstaba = marcadaHoy(m);
+    const antes = gradoDe(m);
+    if (!yaEstaba){
+      m.historial ??= [];
+      m.historial.push(fechaISO());
+      m.resonancias = m.historial.length;
+    }
+    db.guardar();
+
+    const ahora = gradoDe(m);
+    const total = m.meditaciones.reduce((s, x) => s + x.minutos, 0);
+    $('#reposoCierreTxt').innerHTML = `
+      ${yaEstaba
+        ? 'Hoy ya la habías marcado, así que el día no suma de nuevo.'
+        : `Queda marcada. Van <b>${diasDe(m)}</b> ${diasDe(m) === 1 ? 'día' : 'días'} con esta frase.`}
+      ${ahora.clave !== antes.clave ? `<br><br>Subió a <b>${esc(ahora.nombre)}</b>.` : ''}
+      <br><br>Le diste <b>${this.minutos} min</b> de atención sin hacer nada más.
+      En total, ${total} ${total === 1 ? 'minuto' : 'minutos'} en ${m.meditaciones.length}
+      ${m.meditaciones.length === 1 ? 'sesión' : 'sesiones'}.`;
+
+    $('#reposoCierre').hidden = false;
+  },
+
+  /* ---------- pintura ---------- */
+
+  loop(){
+    if (!this.activo) return;
+    this.t += 1/60;
+    const { ctx, W, H } = this;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // manchas de luz muy lentas: el cuarto respira aunque vos no
+    const manchas = [
+      { x:.30, y:.30, r:.95, c:this.color,  f:0.041, a:.30 },
+      { x:.74, y:.64, r:1.05, c:'#4a5a72',  f:0.029, a:.34 },
+      { x:.50, y:.92, r:.90, c:'#6b5a72',   f:0.023, a:.26 }
+    ];
+    for (const s of manchas){
+      const dx = Math.sin(this.t * s.f * 6.283) * 0.10;
+      const dy = Math.cos(this.t * s.f * 4.9) * 0.08;
+      const cx = (s.x + dx) * W, cy = (s.y + dy) * H, r = s.r * Math.max(W, H) * 0.62;
+      const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      g.addColorStop(0, hexA(s.c, s.a));
+      g.addColorStop(1, hexA(s.c, 0));
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // respiración 4 dentro · 2 sostener · 6 afuera
+    if (this.finEn){
+      const CICLO = 12;
+      const f = (this.t % CICLO);
+      let escala, guia;
+      if (f < 4){         escala = 0.55 + (f/4) * 0.45;        guia = 'Inhalá'; }
+      else if (f < 6){    escala = 1;                          guia = 'Sostené'; }
+      else {              escala = 1 - ((f-6)/6) * 0.45;       guia = 'Soltá'; }
+
+      const al = $('.rep-aliento');
+      al.querySelector('i').style.transform = `scale(${escala.toFixed(3)})`;
+      al.querySelector('b').style.transform = `scale(${(escala*0.94).toFixed(3)})`;
+      al.querySelector('b').style.opacity = (0.35 + escala * 0.5).toFixed(2);
+
+      const g = $('#reposoGuia');
+      if (g.textContent !== guia) g.textContent = guia;
+
+    }
+
+    this.raf = requestAnimationFrame(() => this.loop());
+  }
+};
+
+function cablearReposo(){
+  $('#reposoMinutos').addEventListener('click', ev => {
+    const b = ev.target.closest('[data-min]');
+    if (!b) return;
+    reposo.minutos = Number(b.dataset.min);
+    $$('#reposoMinutos button').forEach(x => x.classList.toggle('on', x === b));
+  });
+  $('#reposoEmpezar').onclick  = () => reposo.empezar();
+  $('#reposoCancelar').onclick = () => reposo.cerrar();
+  $('#reposoSalir').onclick    = () => reposo.cerrar();
+  $('#reposoListo').onclick    = () => reposo.cerrar();
+  $('#reposoSonido').onclick   = () => reposo.alternarSonido();
+  window.addEventListener('resize', () => { if (reposo.activo) reposo.medir(); });
+  document.addEventListener('keydown', ev => {
+    if (ev.key === 'Escape' && reposo.activo) reposo.cerrar();
+  });
+  // al volver de la pantalla apagada, poner el reloj al día
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && reposo.activo) reposo.tictac();
+  });
+}
+
+/* ============================================================
    13b. TEMA
    ------------------------------------------------------------
    "auto" sigue al sistema; el resto manda. Resolvemos en JS y
@@ -2316,14 +2585,14 @@ const cosmos = {
 
   radioDe(nd){
     const n = diasDe(nd.m);
-    let r = 3.2 + Math.min(n, 365) ** 0.42 * 0.62;
+    let r = 3.2 + Math.min(n, 180) ** 0.42 * 0.72;
     if (nd.m.favorita) r += 1.2;
     return r;
   },
 
   alfaDe(nd){
     const n = diasDe(nd.m);
-    return n >= 365 ? 1 : n >= 90 ? .92 : n >= 12 ? .82 : n > 0 ? .7 : .55;
+    return n >= 180 ? 1 : n >= 90 ? .92 : n >= 12 ? .82 : n > 0 ? .7 : .55;
   },
 
   // Con zoom alto se rotula todo: entraste a mirar de cerca.
@@ -2653,6 +2922,10 @@ function cablear(){
     otra.ultimaVista = new Date().toISOString();
     db.guardar(); renderHoy();
   };
+  $('#accReposo').onclick = () => {
+    const m = maximaDe(db.datos.config.hoy?.maximaId);
+    if (m) reposo.abrir(m);
+  };
   $('#btnFoco').onclick = elegirFoco;
 
   $('.cierre-opts').addEventListener('click', ev => {
@@ -2821,6 +3094,7 @@ db.cargar();
 
 cablear();
 cablearCosmos();
+cablearReposo();
 programarAvisoCambio();
 aplicarTema();
 ir('hoy');

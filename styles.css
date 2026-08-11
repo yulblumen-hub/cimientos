@@ -1010,3 +1010,48 @@ button{ background:none; border:0; cursor:pointer; }
 
 /* botón para entrar al cuarto, en Hoy */
 .acc.acc-reposo .acc-ico{ font-size:17px; }
+
+/* ============================================================
+   CONTRACARA
+   La simétrica de la obra: acá no se acumula, se sostiene.
+   ============================================================ */
+.anti-sugeridas{ display:flex; flex-direction:column; gap:8px; margin-top:16px; }
+.anti-sug{
+  text-align:left; padding:14px 16px; border-radius:13px;
+  border:1px dashed var(--linea); color:var(--texto-2);
+  font-family:var(--serif); font-size:15.5px; line-height:1.4;
+  transition:.15s;
+}
+.anti-sug:active{ background:var(--bg-alto); color:var(--texto); }
+
+.anti{
+  position:relative; padding:16px 18px 14px;
+  background:var(--bg-alto); border:1px solid var(--linea-2);
+  border-radius:14px; margin-bottom:9px;
+  cursor:pointer; transition:.15s;
+}
+.anti:active{ transform:scale(.995); }
+.anti-txt{ font-family:var(--serif); font-size:17px; line-height:1.42; }
+.anti-barra{
+  height:2px; border-radius:2px; background:var(--linea);
+  margin:13px 0 11px; overflow:hidden;
+}
+.anti-barra i{
+  display:block; height:100%; border-radius:2px;
+  background:var(--c, var(--texto-2));
+  transition:width .5s cubic-bezier(.2,.8,.2,1);
+}
+.anti-pie{
+  display:flex; flex-wrap:wrap; gap:7px; align-items:center;
+  font-size:11px; color:var(--texto-3);
+}
+.anti-pie b{ color:var(--texto-2); font-weight:600; }
+.anti-grado{
+  letter-spacing:.1em; text-transform:uppercase; font-size:9.5px;
+  padding:3px 8px; border-radius:999px; border:1px solid var(--linea);
+}
+.anti-grado.ajeno, .anti-grado.superado{ color:var(--c); border-color:currentColor; }
+
+/* la segunda cara del manifiesto */
+.mf-sombra{ opacity:.9; }
+.mf-sombra .mf-frase::before{ background:var(--texto-3); }

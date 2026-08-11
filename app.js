@@ -48,6 +48,7 @@ const db = {
     d.maximas  ??= [];
     d.autores  ??= autoresBase();
     d.libros   ??= librosBase();
+    d.antimaximas ??= [];
     d.lecturas ??= [];
     d.dialogos ??= [];
     d.notas    ??= [];
@@ -154,6 +155,7 @@ function semilla(){
     maximas,
     autores: autoresBase(),
     libros: librosBase(),
+    antimaximas: [],
     lecturas: [],
     dialogos: [],
     notas: [],
@@ -1355,16 +1357,310 @@ function renderObra(){
     </div>`;
 }
 
+/* ============================================================
+   9c. LA CONTRACARA
+   ------------------------------------------------------------
+   La simétrica exacta de la escalera. Una máxima sube volviendo;
+   una antimáxima sube NO volviendo. Los días limpios se cuentan
+   desde la última caída, así que una caída no borra el historial:
+   te devuelve a cero y queda anotada con fecha.
+
+   Sale de una frase del propio dueño de la app: "qué querer puede
+   ser amplio y ambiguo; que NO querer es el gran primer paso".
+   ============================================================ */
+
+const GRADOS_NO = [
+  { min:0,   clave:'guardia',  nombre:'En guardia' },
+  { min:12,  clave:'firme',    nombre:'Firme' },
+  { min:30,  clave:'lejos',    nombre:'Lejos' },
+  { min:90,  clave:'ajeno',    nombre:'Ajeno' },
+  { min:180, clave:'superado', nombre:'Superado' }
+];
+
+const caidasDe    = a => (a.caidas || []).map(c => c.fecha).sort();
+const ultimaCaida = a => caidasDe(a).slice(-1)[0] || null;
+
+// Días sin caer. Si nunca cayó, se cuenta desde que la escribiste.
+const diasLimpio = a => {
+  const desde = ultimaCaida(a) || (a.creada || '').slice(0,10);
+  const d = diasDesde(desde);
+  return isFinite(d) ? Math.max(0, d) : 0;
+};
+
+const gradoNoDe = a => {
+  const n = diasLimpio(a);
+  let g = GRADOS_NO[0];
+  for (const x of GRADOS_NO) if (n >= x.min) g = x;
+  return g;
+};
+
+const proximoGradoNo = a => GRADOS_NO.find(x => x.min > diasLimpio(a)) || null;
+
+// Desde "Lejos" (30 días sin caer) entra a la segunda cara del manifiesto.
+const yaNoSoy = a => diasLimpio(a) >= 30;
+
+// La racha más larga que lograste alguna vez, aunque después hayas caído.
+function mejorRacha(a){
+  const fs = caidasDe(a);
+  const inicio = (a.creada || '').slice(0,10);
+  let mejor = 0, previo = inicio;
+  for (const f of fs){
+    mejor = Math.max(mejor, diasDesde(previo) - diasDesde(f));
+    previo = f;
+  }
+  return Math.max(mejor, diasLimpio(a));
+}
+
+function registrarCaida(anti, nota = ''){
+  anti.caidas ??= [];
+  const hoy = fechaISO();
+  if (anti.caidas.some(c => c.fecha === hoy)){
+    avisar('Ya la anotaste hoy.');
+    return;
+  }
+  const venia = diasLimpio(anti);
+  anti.caidas.push({ fecha:hoy, nota });
+  db.guardar();
+  vibrar(30);
+  avisar(venia >= 7
+    ? `Anotado. Venías ${venia} días. Empieza de nuevo.`
+    : 'Anotado. Sin drama: anotarlo ya es media pelea.');
+}
+
+const ANTI_SUGERIDAS = [
+  'No quiero ser el que necesita tener razón.',
+  'No quiero decir que sí para caer bien.',
+  'No quiero hablar de gente que no está.',
+  'No quiero postergar la conversación incómoda.',
+  'No quiero mirar el teléfono mientras alguien me habla.'
+];
+
+function renderContracara(){
+  const cont = $('#manifiestoBody');
+  const as = db.datos.antimaximas;
+
+  if (!as.length){
+    cont.innerHTML = `
+      <div class="mf-vacio" style="text-align:left">
+        <p>Todavía no escribiste ninguna.</p>
+        <small>Acá va lo que no querés ser. Sube al revés que una máxima:
+        no por repetirla, sino por los días que pasás sin caer en eso.
+        Tocá una para empezar, o escribí la tuya.</small>
+      </div>
+      <div class="anti-sugeridas">
+        ${ANTI_SUGERIDAS.map(t => `<button type="button" class="anti-sug" data-sug="${esc(t)}">${esc(t)}</button>`).join('')}
+      </div>`;
+    return;
+  }
+
+  const orden = [...as].sort((x,y) => diasLimpio(y) - diasLimpio(x));
+  const limpias = as.filter(yaNoSoy).length;
+  const total = as.reduce((s,a) => s + (a.caidas?.length || 0), 0);
+
+  cont.innerHTML = `
+    <div class="obra-stats">
+      <div><b>${as.length}</b><span>${as.length === 1 ? 'declarada' : 'declaradas'}</span></div>
+      <div><b>${limpias}</b><span>ya no sos</span></div>
+      <div><b>${total}</b><span>${total === 1 ? 'caída anotada' : 'caídas anotadas'}</span></div>
+    </div>
+
+    ${orden.map(a => {
+      const p = pilarDe(a.pilarId);
+      const n = diasLimpio(a);
+      const g = gradoNoDe(a);
+      const sig = proximoGradoNo(a);
+      const pct = sig ? Math.min(100, Math.round(n / sig.min * 100)) : 100;
+      const ult = ultimaCaida(a);
+      return `
+        <article class="anti" data-anti="${a.id}" style="--c:${esc(p?.color || 'var(--texto-3)')}">
+          <div class="anti-txt">${esc(a.texto)}</div>
+          <div class="anti-barra"><i style="width:${pct}%"></i></div>
+          <div class="anti-pie">
+            <span class="anti-grado ${g.clave}">${esc(g.nombre)}</span>
+            <span>· <b>${n}</b> ${n === 1 ? 'día limpio' : 'días limpios'}</span>
+            ${sig ? `<span>· faltan ${sig.min - n} para ${esc(sig.nombre)}</span>` : ''}
+            ${ult ? `<span>· última: ${esc(fechaCorta(ult))}</span>` : '<span>· nunca caíste</span>'}
+          </div>
+        </article>`;
+    }).join('')}`;
+}
+
+function editarAnti(id, textoPrevio = ''){
+  const a = id ? db.datos.antimaximas.find(x => x.id === id) : null;
+  let pilarSel = a?.pilarId || db.datos.config.focoPilarId || db.datos.pilares[0]?.id;
+
+  abrirSheet(`
+    <h3>${a ? 'Lo que no querés ser' : 'Nueva antimáxima'}</h3>
+    <div class="campo">
+      <label>Escribila en negativo</label>
+      <textarea id="aTexto" rows="3" placeholder="No quiero ser el que…">${esc(a?.texto || textoPrevio)}</textarea>
+    </div>
+    <div class="campo">
+      <label>De qué pilar es la sombra</label>
+      ${opcionesPilar(pilarSel)}
+    </div>
+    ${a ? `<p class="nota-tec" style="margin:-4px 0 18px">
+      ${diasLimpio(a)} días limpios · mejor racha: ${mejorRacha(a)} ·
+      ${(a.caidas?.length || 0)} ${(a.caidas?.length === 1) ? 'caída' : 'caídas'}
+    </p>` : ''}
+    <div class="sheet-acciones">
+      ${a ? '<button type="button" class="btn-borrar" id="aBorrar">Borrar</button>' : ''}
+      <button type="button" class="btn-primario" id="aGuardar">Guardar</button>
+    </div>
+  `, cuerpo => {
+    cuerpo.addEventListener('click', ev => {
+      const b = ev.target.closest('[data-pick-pilar]');
+      if (!b) return;
+      pilarSel = b.dataset.pickPilar;
+      $$('[data-pick-pilar]', cuerpo).forEach(x => x.classList.toggle('on', x === b));
+    });
+
+    $('#aGuardar', cuerpo).onclick = () => {
+      const texto = $('#aTexto', cuerpo).value.trim();
+      if (!texto) return avisar('Escribí la frase');
+      if (a) Object.assign(a, { texto, pilarId:pilarSel });
+      else db.datos.antimaximas.push({
+        id:uid(), texto, pilarId:pilarSel,
+        creada:new Date().toISOString(), caidas:[]
+      });
+      db.guardar(); cerrarSheet(); render(); avisar('Guardada');
+    };
+
+    const bb = $('#aBorrar', cuerpo);
+    if (bb) bb.onclick = () => {
+      if (!confirm('¿Borrar esta antimáxima y su historial?')) return;
+      db.datos.antimaximas = db.datos.antimaximas.filter(x => x.id !== a.id);
+      db.guardar(); cerrarSheet(); render();
+    };
+  });
+}
+
+function verAnti(id){
+  const a = db.datos.antimaximas.find(x => x.id === id);
+  if (!a) return;
+  const p = pilarDe(a.pilarId);
+  const n = diasLimpio(a);
+  const g = gradoNoDe(a);
+  const caidas = [...(a.caidas || [])].sort((x,y) => y.fecha.localeCompare(x.fecha));
+
+  abrirSheet(`
+    <div class="sheet-cita" style="--c:${esc(p?.color || '')}">${esc(a.texto)}</div>
+    <div class="mx-pie" style="margin:-8px 0 20px">
+      <span class="mx-estado" style="--c:${esc(p?.color || '')}">${esc(g.nombre)}</span>
+      <span>${esc(p?.nombre || 'Sin pilar')}</span>
+      <span>· ${n} ${n === 1 ? 'día limpio' : 'días limpios'}</span>
+      <span>· mejor: ${mejorRacha(a)}</span>
+    </div>
+
+    <div class="campo">
+      <label>Hoy se te cruzó</label>
+      <textarea id="aCaidaNota" rows="2" placeholder="Qué pasó, en una línea (opcional)."></textarea>
+      <button type="button" class="btn-sec" id="aCaida" style="margin-top:10px;width:100%">Anotar una caída</button>
+      <p class="nota-tec" style="margin-top:10px">
+        Anotarlo no es castigarte: es la única forma de que la racha signifique algo.
+      </p>
+    </div>
+
+    <div class="sheet-acciones">
+      <button type="button" class="btn-sec" id="aEditar" style="flex:1">Editar</button>
+    </div>
+
+    ${caidas.length ? `
+      <div class="campo" style="margin-top:24px">
+        <label>Historial (${caidas.length})</label>
+        ${caidas.map(c => `
+          <div class="nota" style="cursor:default">
+            <div class="mx-pie" style="margin:0 0 ${c.nota ? '6px' : '0'}">${esc(fechaCorta(c.fecha))}</div>
+            ${c.nota ? `<div class="nota-txt">${esc(c.nota)}</div>` : ''}
+          </div>`).join('')}
+      </div>` : ''}
+  `, cuerpo => {
+    $('#aCaida', cuerpo).onclick = () => {
+      registrarCaida(a, $('#aCaidaNota', cuerpo).value.trim());
+      cerrarSheet(); render();
+    };
+    $('#aEditar', cuerpo).onclick = () => { cerrarSheet(); setTimeout(() => editarAnti(a.id), 180); };
+  });
+}
+
+// Después de un cierre flojo: ¿qué se te cruzó?
+function preguntarQueSeCruzo(){
+  const as = db.datos.antimaximas;
+  if (!as.length) return;
+
+  abrirSheet(`
+    <h3>¿Qué se te cruzó?</h3>
+    <p class="view-sub" style="margin-top:-10px">
+      Si hoy no salió, casi siempre hay algo atrás. Elegí lo que fue, o cerrá si no aplica.
+    </p>
+    <div class="lineas">
+      ${as.map(a => {
+        const n = diasLimpio(a);
+        return `<div class="lin si" data-cruzo="${a.id}">
+          <div class="lin-txt">${esc(a.texto)}</div>
+          <div class="lin-tic">${n}d</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="sheet-acciones">
+      <button type="button" class="btn-sec" id="cNada" style="flex:1">Ninguna de estas</button>
+    </div>
+  `, cuerpo => {
+    cuerpo.addEventListener('click', ev => {
+      const el = ev.target.closest('[data-cruzo]');
+      if (!el) return;
+      const a = db.datos.antimaximas.find(x => x.id === el.dataset.cruzo);
+      registrarCaida(a);
+      cerrarSheet(); render();
+    });
+    $('#cNada', cuerpo).onclick = cerrarSheet;
+  });
+}
+
+function textoContracara(){
+  const lineas = [];
+  [...db.datos.pilares].sort((a,b)=>a.orden-b.orden).forEach(p => {
+    const as = db.datos.antimaximas.filter(a => a.pilarId === p.id && yaNoSoy(a));
+    if (!as.length) return;
+    lineas.push(p.nombre.toUpperCase());
+    as.forEach(a => lineas.push(`— ${a.texto}  (${diasLimpio(a)} días)`));
+    lineas.push('');
+  });
+  return lineas.join('\n').trim();
+}
+
 let segYo = 'obra';
 
 function renderYo(){
   $$('#segYo button').forEach(b => b.classList.toggle('on', b.dataset.seg === segYo));
-  $('#yoTitulo').textContent = segYo === 'obra' ? 'En obra' : 'Manifiesto';
-  $('#btnCompartir').hidden = segYo !== 'manifiesto';
-  $('#yoSub').textContent = segYo === 'obra'
-    ? 'A dónde van tus “me resonó”. Cada marca coloca una pieza; las de abajo ya sostienen.'
-    : 'Esto no lo escribís de una. Se escribe solo, a medida que una frase aguanta la repetición.';
-  return segYo === 'obra' ? renderObra() : renderManifiesto();
+
+  const titulo = { obra:'En obra', manifiesto:'Manifiesto', contracara:'Lo que no' };
+  const sub = {
+    obra:       'A dónde van tus “me resonó”. Cada marca coloca una pieza; las de abajo ya sostienen.',
+    manifiesto: 'Esto no lo escribís de una. Se escribe solo, a medida que una frase aguanta la repetición.',
+    contracara: 'Lo que no querés ser. Sube al revés: no por repetirla, sino por los días que pasás sin caer.'
+  };
+  $('#yoTitulo').textContent = titulo[segYo];
+  $('#yoSub').textContent = sub[segYo];
+  $('#btnCompartir').hidden  = segYo === 'obra';
+  $('#btnNuevaAnti').hidden  = segYo !== 'contracara';
+
+  if (segYo === 'obra') return renderObra();
+  if (segYo === 'contracara') return renderContracara();
+  return renderManifiesto();
+}
+
+function bloqueYaNoSoy(){
+  const as = db.datos.antimaximas.filter(yaNoSoy);
+  if (!as.length) return '';
+  return `
+    <section class="mf-bloque mf-sombra">
+      <div class="mf-pilar" style="--c:var(--texto-3)">Esto ya no soy</div>
+      ${as.sort((a,b) => diasLimpio(b) - diasLimpio(a)).map(a => `
+        <div class="mf-frase">${esc(a.texto)}
+          <span class="mf-grado">${esc(gradoNoDe(a).nombre)} · ${diasLimpio(a)} días sin caer</span>
+        </div>`).join('')}
+    </section>`;
 }
 
 function renderManifiesto(){
@@ -1378,7 +1674,7 @@ function renderManifiesto(){
         <small>Cada día que una frase te resuene, marcala en Hoy. A los 12 días
         distintos entra acá sola, y de ahí sigue subiendo: 30, 90, 180.
         Recién a los seis meses de volver a ella es un cimiento de verdad.</small>
-      </div>`;
+      </div>` + bloqueYaNoSoy();
     return;
   }
 
@@ -1394,7 +1690,7 @@ function renderManifiesto(){
           ${esc(m.texto)}<span class="mf-grado">${esc(gradoDe(m).nombre)} · ${diasDe(m)} d</span>
         </div>`).join('')}
       </section>`;
-  }).join('');
+  }).join('') + bloqueYaNoSoy();
 }
 
 /* ============================================================
@@ -3129,6 +3425,8 @@ function cablear(){
     db.datos.registros = db.datos.registros.filter(r => r.fecha !== hoy);
     db.datos.registros.push({ fecha:hoy, maximaId:db.datos.config.hoy?.maximaId, practica:b.dataset.practica });
     db.guardar(); vibrar(); renderHoy();
+    // si el día no salió, el dato valioso está en qué lo impidió
+    if (b.dataset.practica !== 'si') setTimeout(preguntarQueSeCruzo, 420);
   });
   $('#cierreDeshacer').onclick = () => {
     db.datos.registros = db.datos.registros.filter(r => r.fecha !== fechaISO());
@@ -3188,6 +3486,13 @@ function cablear(){
   });
 
   // ---- MANIFIESTO ----
+  $('#btnNuevaAnti').onclick = () => editarAnti();
+  $('#manifiestoBody').addEventListener('click', ev => {
+    const a = ev.target.closest('[data-anti]');
+    if (a) return verAnti(a.dataset.anti);
+    const sug = ev.target.closest('[data-sug]');
+    if (sug) return editarAnti(null, sug.dataset.sug);
+  });
   $('#segYo').addEventListener('click', ev => {
     const b = ev.target.closest('[data-seg]');
     if (!b) return;
@@ -3199,8 +3504,8 @@ function cablear(){
   });
 
   $('#btnCompartir').onclick = async () => {
-    const t = textoManifiesto();
-    if (!t) return avisar('Todavía no hay cimientos');
+    const t = segYo === 'contracara' ? textoContracara() : textoManifiesto();
+    if (!t) return avisar(segYo === 'contracara' ? 'Todavía no hay ninguna con 30 días' : 'Todavía no hay cimientos');
     try{ await navigator.clipboard.writeText(t); avisar('Copiado'); }
     catch(e){ avisar('No pude copiar'); }
   };

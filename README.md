@@ -32,6 +32,26 @@ Por eso el grado **no se puede elegir a mano**. Un principio no se declara: se
 gana volviendo. Cada día marcado deja un punto, y los hitos quedan señalados —
 la repetición se ve acumulada, no como un número suelto.
 
+### La contracara
+
+La otra mitad, y la que hace que el resto no sea decorativo. Las **antimáximas**
+son lo que no querés ser, y suben **al revés**: no por repetirlas sino por los
+días que pasás sin caer.
+
+```
+En guardia → Firme (12) → Lejos (30) → Ajeno (90) → Superado (180)
+```
+
+Una caída no borra el historial: te devuelve a cero y queda anotada con fecha
+y, si querés, con qué pasó. Se guarda también la mejor racha que lograste.
+
+Engancha con el cierre del día: cuando respondés que **no** la practicaste o
+que fue **a medias**, la app pregunta *¿qué se te cruzó?* — y ahí ese dato, que
+antes se perdía, se convierte en la caída de una antimáxima.
+
+Desde los 30 días limpios entra a la segunda cara del Manifiesto: **Esto ya no
+soy**.
+
 ### Constelación
 
 Las frases también se navegan como un espacio. Cada pilar es una región, las

@@ -131,6 +131,65 @@ button{ background:none; border:0; cursor:pointer; }
   font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
   color:var(--texto-3);
 }
+.hoy-head-der{ display:flex; align-items:center; gap:8px; max-width:70%; }
+.btn-engranaje{
+  flex:none; width:32px; height:32px; border-radius:50%;
+  border:1px solid var(--linea); color:var(--texto-3);
+  font-size:14px; line-height:1; transition:.15s;
+}
+.btn-engranaje:active{ background:var(--bg-alto); color:var(--texto); }
+
+.ciclo{
+  font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--texto-3); margin-top:14px;
+}
+
+/* ---------- lecturas ---------- */
+.lec-grupo{ margin-bottom:26px; }
+.lec-titulo{
+  font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--c); padding-bottom:8px; margin-bottom:11px;
+  border-bottom:1px solid var(--linea-2);
+}
+.libro{
+  position:relative; padding:16px 16px 14px 20px; margin-bottom:9px;
+  background:var(--bg-alto); border:1px solid var(--linea-2);
+  border-radius:14px; cursor:pointer; transition:.15s;
+}
+.libro::before{
+  content:""; position:absolute; inset:14px auto 14px 0; width:2px;
+  border-radius:2px; background:var(--c); opacity:.85;
+}
+.libro:active{ transform:scale(.995); }
+.libro-pilar{
+  font-size:9.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--c); margin-bottom:7px;
+}
+.libro-titulo{ font-family:var(--serif); font-size:18px; line-height:1.3; }
+.libro-autor{ font-size:12px; color:var(--texto-3); margin-top:4px; }
+.libro-linea{ font-size:13.5px; color:var(--texto-2); line-height:1.5; margin-top:9px; }
+.libro-tag{
+  display:inline-block; margin-top:11px; font-size:10px;
+  letter-spacing:.1em; text-transform:uppercase;
+  padding:4px 9px; border-radius:999px; border:1px solid var(--linea);
+  color:var(--texto-2);
+}
+.libro-tag.leido{ color:var(--c); border-color:currentColor; }
+.libro-nota{
+  margin:-4px 0 12px; padding:12px 16px 12px 20px;
+  font-size:13.5px; line-height:1.55; color:var(--texto-2);
+  border-left:1px solid var(--linea); font-style:italic;
+}
+.libro-moraleja{
+  font-family:var(--serif); font-size:17px !important; line-height:1.45 !important;
+  padding-left:14px; border-left:2px solid var(--c);
+}
+.lec-rotacion{
+  margin-bottom:26px; padding:16px 16px 6px;
+  border:1px dashed var(--linea); border-radius:var(--r);
+}
+.lec-rotacion .lec-titulo{ border:0; padding:0; margin-bottom:12px; color:var(--texto-3); }
+
 .chip-foco{
   font-size:11.5px; letter-spacing:.04em;
   border-radius:999px; padding:6px 13px 6px 11px;
@@ -754,3 +813,19 @@ button{ background:none; border:0; cursor:pointer; }
   max-width:88vw; text-align:center;
 }
 #toast[hidden]{ display:none; }
+
+/* botón de vista general dentro de la constelación */
+#cosmosAlejar{
+  position:absolute; top:calc(var(--safe-t) + 14px); right:62px; z-index:3;
+  width:38px; height:38px; border-radius:50%;
+  background:#ffffff0f; color:#e8e4dc; font-size:15px;
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+}
+
+/* aviso de rotación: aparece 12 h antes de que la frase cambie */
+.aviso-cambio{
+  margin-top:18px; padding:13px 15px; border-radius:12px;
+  background:var(--bg-alto); border:1px solid var(--linea);
+  font-size:12.5px; line-height:1.55; color:var(--texto-2);
+}
+.aviso-cambio b{ color:var(--texto); font-weight:500; }

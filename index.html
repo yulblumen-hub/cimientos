@@ -22,7 +22,10 @@
   <section class="view" data-view="hoy">
     <header class="hoy-head">
       <div class="fecha" id="hoyFecha"></div>
-      <button class="chip-foco" id="btnFoco" type="button"></button>
+      <div class="hoy-head-der">
+        <button class="chip-foco" id="btnFoco" type="button"></button>
+        <button class="btn-engranaje" id="btnAjustes" type="button" aria-label="Ajustes">⚙</button>
+      </div>
     </header>
 
     <div class="maxima-stage" id="maximaStage">
@@ -30,6 +33,7 @@
       <blockquote class="maxima-texto" id="maximaTexto"></blockquote>
       <div class="maxima-fuente" id="maximaFuente"></div>
       <div class="maxima-progreso" id="maximaProgreso"></div>
+      <div class="aviso-cambio" id="avisoCambio" hidden></div>
     </div>
 
     <div class="hoy-acciones">
@@ -72,6 +76,31 @@
     </header>
     <p class="view-sub">Tus valores raíz. Pocos, y bien tuyos. Tocá uno para escribir qué significa para vos.</p>
     <div class="pilares-lista" id="pilaresLista"></div>
+
+    <button class="abrir-cosmos" id="btnLecturas" type="button">
+      <span class="cosmos-ico">▤</span>
+      <span>
+        <b>Lecturas</b>
+        <small>Libros para cada pilar, y el escritorio de lo que sigue</small>
+      </span>
+    </button>
+  </section>
+
+  <!-- ============ LECTURAS ============ -->
+  <section class="view" data-view="lecturas" hidden>
+    <header class="view-head">
+      <h1>Lecturas</h1>
+      <button class="btn-ghost" id="btnVolverPilares" type="button">← Pilares</button>
+    </header>
+
+    <div class="segmento" id="segLecturas">
+      <button type="button" class="on" data-seg="reco">Recomendados</button>
+      <button type="button" data-seg="escritorio">Escritorio</button>
+      <button type="button" data-seg="leidos">Leídos</button>
+    </div>
+
+    <p class="view-sub" id="lecturasSub"></p>
+    <div id="lecturasLista"></div>
   </section>
 
   <!-- ============ MÁXIMAS ============ -->
@@ -232,7 +261,8 @@
 <div id="cosmos" hidden>
   <canvas id="cosmosLienzo"></canvas>
   <button type="button" id="cosmosSalir" aria-label="Salir">✕</button>
-  <div id="cosmosPista">Arrastrá para navegar</div>
+  <button type="button" id="cosmosAlejar" aria-label="Vista general">⤢</button>
+  <div id="cosmosPista">Un dedo para navegar · dos para acercar y girar · tocá una estrella para entrar</div>
   <div id="cosmosCarta" hidden>
     <div class="cc-pilar" id="ccPilar"></div>
     <blockquote class="cc-texto" id="ccTexto"></blockquote>

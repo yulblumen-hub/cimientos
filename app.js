@@ -47,6 +47,8 @@ const db = {
     d.pilares  ??= [];
     d.maximas  ??= [];
     d.autores  ??= autoresBase();
+    d.libros   ??= librosBase();
+    d.lecturas ??= [];
     d.dialogos ??= [];
     d.notas    ??= [];
     d.registros ??= [];
@@ -151,6 +153,8 @@ function semilla(){
     pilares,
     maximas,
     autores: autoresBase(),
+    libros: librosBase(),
+    lecturas: [],
     dialogos: [],
     notas: [],
     registros: [],
@@ -203,6 +207,100 @@ function autoresBase(){
       enseno: 'La dicotomía del control: hay cosas que dependen de vos (tu juicio, tu intención, tu reacción) y cosas que no (tu cuerpo, tu reputación, los demás). Confundirlas es la fuente de casi todo el sufrimiento.',
       completo: 'Nació esclavo en Frigia, en la actual Turquía. Era rengo; según la tradición, por un maltrato de su amo. Ya liberado, fundó una escuela en Nicópolis, Grecia.\n\nNunca escribió una línea. Todo lo que se conserva son apuntes que tomó su alumno Arriano: los "Discursos" y el "Enquiridión" (que quiere decir, literalmente, manual de mano — pensado para llevarlo encima).\n\nEs el que más lejos llevó la idea, porque la probó en el peor lugar posible: si alguien podía decir que las circunstancias determinan la vida de uno, era él.'
     }
+  ];
+}
+
+/* ------------------------------------------------------------
+   Lecturas.
+   Pocos y buenos, uno por tema. Cada ficha dice de qué va y con
+   qué te quedás — no un resumen que te ahorre leerlo, sino lo
+   justo para decidir si es tu momento para ese libro.
+   ------------------------------------------------------------ */
+
+function librosBase(){
+  const L = (pilar, titulo, autor, anio, unaLinea, deQueVa, moraleja) =>
+    ({ id:uid(), pilar, titulo, autor, anio, unaLinea, deQueVa, moraleja });
+
+  return [
+    // ---------- Humildad ----------
+    L('Humildad', 'Meditaciones', 'Marco Aurelio', 'siglo II',
+      'El diario privado del hombre más poderoso de su tiempo.',
+      'No es un libro: son los cuadernos que escribía de noche, en campaña, para acordarse al día siguiente de cómo comportarse. Vuelve una y otra vez sobre lo mismo, como quien se corrige.',
+      'Que el que más motivos tenía para creérsela usó la escritura justamente para no creérsela.'),
+
+    L('Humildad', 'El ego es el enemigo', 'Ryan Holiday', '2016',
+      'Contra la voz que te dice que ya llegaste.',
+      'Recorre tres momentos —cuando aspirás, cuando tenés éxito y cuando fracasás— y muestra que el ego sabotea en los tres, con casos concretos de gente que se lo comió y de gente que lo esquivó.',
+      'El ego no aparece cuando perdés: aparece cuando ganás, y ahí es cuando más caro sale.'),
+
+    L('Humildad', 'Pensar rápido, pensar despacio', 'Daniel Kahneman', '2011',
+      'Por qué tu cabeza te miente y ni te enterás.',
+      'El premio Nobel de Economía explica los dos modos de pensar: uno rápido, automático e intuitivo, y otro lento y deliberado. La mayoría de nuestros errores vienen de dejar decidir al primero cuando hacía falta el segundo.',
+      'Humildad de verdad no es dudar de lo que sabés, es saber que tu intuición tiene fallas sistemáticas y predecibles.'),
+
+    // ---------- Foco ----------
+    L('Foco', 'Céntrate (Deep Work)', 'Cal Newport', '2016',
+      'La concentración profunda como habilidad escasa.',
+      'Argumenta que la capacidad de trabajar concentrado sin distracción se está volviendo rara justo cuando se vuelve más valiosa, y propone rutinas concretas para recuperarla.',
+      'Lo que hacés con atención partida no es una versión más lenta del buen trabajo: es otra cosa, peor.'),
+
+    L('Foco', 'Esencialismo', 'Greg McKeown', '2014',
+      'Menos cosas, pero mejor.',
+      'No es sobre hacer más en menos tiempo, es sobre hacer menos. Distingue entre lo que parece urgente y lo que realmente importa, y trata al “no” como una habilidad que se entrena.',
+      'Si no elegís vos en qué gastás tu tiempo, va a elegir otro.'),
+
+    L('Foco', 'Sobre la brevedad de la vida', 'Séneca', 'siglo I',
+      'Una carta a un amigo que se queja de no tener tiempo.',
+      'Corto y filoso. Sostiene que la vida no es breve: la hacemos breve. Somos avaros con el dinero y regalamos las horas a cualquiera que las pida.',
+      'Nadie te va a devolver el tiempo. Es lo único que prestás sin poder cobrarlo.'),
+
+    // ---------- Energía ----------
+    L('Energía', 'Hábitos atómicos', 'James Clear', '2018',
+      'Cambios de 1% que se acumulan.',
+      'El sistema práctico más claro que hay sobre cómo se forma y se rompe un hábito: hacerlo obvio, atractivo, fácil y satisfactorio. Lleno de mecánica aplicable, poca arenga.',
+      'No subís al nivel de tus objetivos: caés al nivel de tus sistemas.'),
+
+    L('Energía', 'El poder de los hábitos', 'Charles Duhigg', '2012',
+      'Cómo funciona el bucle señal → rutina → recompensa.',
+      'Más narrativo que el de Clear: cuenta casos de personas, empresas y hasta ciudades que cambiaron al cambiar un solo hábito clave. Explica el mecanismo antes de darte la receta.',
+      'No hace falta rehacerse entero. Un hábito bien elegido arrastra a los demás.'),
+
+    L('Energía', 'Mindset', 'Carol Dweck', '2006',
+      'Creer que se puede mejorar, cambia si mejorás.',
+      'Investigación de décadas sobre dos formas de pararse frente a la dificultad: creer que las capacidades son fijas o creer que se desarrollan. La diferencia predice qué hacés cuando algo te sale mal.',
+      'El talento decide dónde arrancás. Lo que pensás del esfuerzo decide dónde terminás.'),
+
+    // ---------- Intención ----------
+    L('Intención', 'Cómo ganar amigos e influir sobre las personas', 'Dale Carnegie', '1936',
+      'Viejo, algo naíf, y todavía el mejor del tema.',
+      'Reglas simples sobre interés genuino, escuchar y hacer sentir importante al otro. Se le nota la época y a veces suena a manual de vendedor, pero el fondo aguantó noventa años.',
+      'A casi nadie le interesa tu opinión tanto como su propia experiencia. Preguntá más.'),
+
+    L('Intención', 'Comunicación no violenta', 'Marshall Rosenberg', '1999',
+      'Cómo decir lo difícil sin romper el vínculo.',
+      'Un método de cuatro pasos —observación, sentimiento, necesidad, pedido— para hablar de lo que molesta sin acusar. Suena mecánico al leerlo y funciona sorprendentemente bien al usarlo.',
+      'Casi todo reproche es una necesidad mal dicha.'),
+
+    L('Intención', 'Los siete hábitos de la gente altamente efectiva', 'Stephen Covey', '1989',
+      'El clásico, más profundo de lo que su fama sugiere.',
+      'A pesar del título de autoayuda, es un libro sobre carácter antes que sobre técnica. El quinto hábito —buscar primero entender y después ser entendido— vale por todo el resto.',
+      'La confianza no se pide ni se declara: se acumula en depósitos chiquitos y se gasta rápido.'),
+
+    // ---------- Ser buena gente ----------
+    L('Ser buena gente', 'Dar y recibir', 'Adam Grant', '2013',
+      'Los generosos terminan arriba o abajo, nunca en el medio.',
+      'Investigación sobre tres formas de vincularse: dar, recibir o equilibrar. Los que más dan aparecen en los dos extremos del éxito, y el libro explica qué separa a unos de otros.',
+      'Ser generoso funciona, siempre que no confundas generosidad con no saber decir que no.'),
+
+    L('Ser buena gente', 'El hombre en busca de sentido', 'Viktor Frankl', '1946',
+      'Escrito por un psiquiatra que sobrevivió a los campos.',
+      'La primera mitad es su testimonio en Auschwitz; la segunda, la terapia que construyó a partir de eso. Es duro, es corto y no tiene una sola línea de autocompasión.',
+      'Te pueden sacar todo menos una cosa: elegir tu actitud frente a lo que te toca.'),
+
+    L('Ser buena gente', 'Los dones de la imperfección', 'Brené Brown', '2010',
+      'Mostrarte incompleto como forma de conectar.',
+      'Investigación sobre vergüenza y vulnerabilidad. Sostiene que la coraza que te protege de que te lastimen es la misma que te impide que te quieran de verdad.',
+      'La vulnerabilidad no es debilidad: es la única puerta por la que entra alguien.')
   ];
 }
 
@@ -376,21 +474,70 @@ function elegirMaxima(excluirId = null){
   return pool[pool.length - 1];
 }
 
+// Una frase te acompaña CICLO_DIAS días, no uno. Que aparezca y
+// desaparezca al otro día no deja que cale.
+const CICLO_DIAS = 3;
+
+function diasDesde(iso){
+  if (!iso) return Infinity;
+  const [a,m,d] = iso.split('-').map(Number);
+  return Math.floor((new Date().setHours(0,0,0,0) - new Date(a, m-1, d).getTime()) / 86400000);
+}
+
+// En qué día del ciclo estás (1, 2 o 3).
+const diaDelCiclo = () => Math.min(CICLO_DIAS, diasDesde(db.datos.config.hoy?.fecha) + 1);
+
+// Cuántas horas faltan para que la frase rote.
+function horasParaCambio(){
+  const f = db.datos.config.hoy?.fecha;
+  if (!f) return Infinity;
+  const [a,m,d] = f.split('-').map(Number);
+  const fin = new Date(a, m-1, d);
+  fin.setDate(fin.getDate() + CICLO_DIAS);
+  fin.setHours(0,0,0,0);
+  return (fin - Date.now()) / 3600000;
+}
+
+const AVISO_HORAS = 12;
+
 function maximaDeHoy(){
   const cfg = db.datos.config;
-  const hoy = fechaISO();
 
-  if (cfg.hoy?.fecha === hoy){
+  if (cfg.hoy && diasDesde(cfg.hoy.fecha) < CICLO_DIAS){
     const m = maximaDe(cfg.hoy.maximaId);
     if (m) return m;
   }
-  const m = elegirMaxima();
+  const m = elegirMaxima(cfg.hoy?.maximaId);
   if (!m) return null;
 
-  cfg.hoy = { fecha: hoy, maximaId: m.id };
+  cfg.hoy = { fecha: fechaISO(), maximaId: m.id };
   m.ultimaVista = new Date().toISOString();
   db.guardar();
   return m;
+}
+
+// Los recomendados también rotan cada ciclo: tres a la vez, no quince.
+function librosDelCiclo(){
+  const cfg = db.datos.config;
+  if (cfg.libros && diasDesde(cfg.libros.fecha) < CICLO_DIAS){
+    const bs = cfg.libros.ids.map(libroDe).filter(Boolean);
+    if (bs.length) return bs;
+  }
+  const foco = pilarDe(cfg.focoPilarId);
+  const pool = [...db.datos.libros];
+  const elegidos = [];
+
+  // uno del pilar de la semana, si hay; el resto al azar sin repetir
+  const delFoco = foco && pool.filter(b => normal(b.pilar) === normal(foco.nombre));
+  if (delFoco?.length) elegidos.push(delFoco[Math.floor(Math.random()*delFoco.length)]);
+
+  while (elegidos.length < 3 && elegidos.length < pool.length){
+    const b = pool[Math.floor(Math.random()*pool.length)];
+    if (!elegidos.includes(b)) elegidos.push(b);
+  }
+  cfg.libros = { fecha: fechaISO(), ids: elegidos.map(b => b.id) };
+  db.guardar();
+  return elegidos;
 }
 
 /* ============================================================
@@ -415,6 +562,7 @@ function render(){
   if (vista === 'pilares')    renderPilares();
   if (vista === 'maximas')    renderMaximas();
   if (vista === 'diario')     renderDiario();
+  if (vista === 'lecturas')   renderLecturas();
   if (vista === 'manifiesto') renderManifiesto();
   if (vista === 'ajustes')    renderAjustes();
 }
@@ -464,7 +612,22 @@ function renderHoy(){
   // progreso hacia cimiento
   const prog = $('#maximaProgreso');
   prog.innerHTML =
-    `<span class="grado-linea">${esc(lineaDeGrado(m))}</span>` + pistaDePuntos(m, 60);
+    `<span class="grado-linea">${esc(lineaDeGrado(m))}</span>` + pistaDePuntos(m, 60) +
+    `<span class="ciclo">Día ${diaDelCiclo()} de ${CICLO_DIAS} con esta frase</span>`;
+
+  // Aviso antes de que rote, con tiempo para decidir si te la querés quedar.
+  const hs = horasParaCambio();
+  const aviso = $('#avisoCambio');
+  if (hs > 0 && hs <= AVISO_HORAS){
+    aviso.hidden = false;
+    aviso.innerHTML = `
+      <b>En ${Math.max(1, Math.round(hs))} h cambia la frase.</b>
+      ${m.favorita
+        ? 'Está en favoritas: va a volver seguido.'
+        : 'Si te sirvió, dejala en favoritas y vuelve seguido en vez de perderse.'}`;
+  }else{
+    aviso.hidden = true;
+  }
 
   $('#accFav').classList.toggle('activa', m.favorita);
   $('#accFav .acc-ico').textContent = m.favorita ? '★' : '☆';
@@ -923,6 +1086,160 @@ function renderDialogos(cont){
         <div class="dlg-meta">${d.lineas.length} ${d.lineas.length === 1 ? 'línea guardada' : 'líneas guardadas'}</div>
       </article>`;
   }).join('');
+}
+
+/* ============================================================
+   9b. VISTA — LECTURAS
+   ------------------------------------------------------------
+   Recomendados por pilar, un escritorio con lo que sigue, y el
+   historial de lo leído con lo que te dejó cada uno.
+   ============================================================ */
+
+let segLecturas = 'reco';
+
+const lecturaDe = libroId => db.datos.lecturas.find(l => l.libroId === libroId);
+const libroDe   = id => db.datos.libros.find(b => b.id === id);
+
+function marcarLectura(libroId, estado){
+  let l = lecturaDe(libroId);
+  if (!l){
+    l = { libroId, estado, agregado:new Date().toISOString(), terminado:null, nota:'' };
+    db.datos.lecturas.push(l);
+  }else{
+    l.estado = estado;
+  }
+  if (estado === 'leido') l.terminado ??= new Date().toISOString();
+  if (estado === 'quitar') db.datos.lecturas = db.datos.lecturas.filter(x => x.libroId !== libroId);
+  db.guardar();
+}
+
+function renderLecturas(){
+  $$('#segLecturas button').forEach(b => b.classList.toggle('on', b.dataset.seg === segLecturas));
+  const cont = $('#lecturasLista');
+
+  const sub = {
+    reco:       'Pocos y buenos, uno por tema. Tocá uno para ver de qué va.',
+    escritorio: 'Lo que decidiste leer. Sin fecha ni presión: es una fila, no una deuda.',
+    leidos:     'Lo que ya leíste, y con qué te quedaste de cada uno.'
+  };
+  $('#lecturasSub').textContent = sub[segLecturas];
+
+  const tarjeta = b => {
+    const l = lecturaDe(b.id);
+    const p = db.datos.pilares.find(x => normal(x.nombre) === normal(b.pilar));
+    return `
+      <article class="libro" data-libro="${b.id}" style="--c:${esc(p?.color || 'var(--texto-3)')}">
+        <div class="libro-pilar">${esc(b.pilar)}</div>
+        <div class="libro-titulo">${esc(b.titulo)}</div>
+        <div class="libro-autor">${esc(b.autor)} · ${esc(b.anio)}</div>
+        <div class="libro-linea">${esc(b.unaLinea)}</div>
+        ${l ? `<div class="libro-tag ${l.estado}">${l.estado === 'leido' ? '✓ Leído'
+              : l.estado === 'leyendo' ? '◐ Leyéndolo' : '▤ En el escritorio'}</div>` : ''}
+      </article>`;
+  };
+
+  if (segLecturas === 'reco'){
+    const rota = librosDelCiclo();
+    const cabecera = `
+      <section class="lec-rotacion">
+        <div class="lec-titulo">Estos ${CICLO_DIAS} días</div>
+        ${rota.map(tarjeta).join('')}
+      </section>`;
+
+    const porPilar = {};
+    db.datos.libros.forEach(b => (porPilar[b.pilar] ??= []).push(b));
+    cont.innerHTML = cabecera + Object.keys(porPilar).map(nombre => {
+      const p = db.datos.pilares.find(x => normal(x.nombre) === normal(nombre));
+      return `
+        <section class="lec-grupo">
+          <div class="lec-titulo" style="--c:${esc(p?.color || 'var(--texto-3)')}">${esc(nombre)}</div>
+          ${porPilar[nombre].map(tarjeta).join('')}
+        </section>`;
+    }).join('');
+    return;
+  }
+
+  const quiero = segLecturas === 'escritorio'
+    ? db.datos.lecturas.filter(l => l.estado === 'escritorio' || l.estado === 'leyendo')
+    : db.datos.lecturas.filter(l => l.estado === 'leido');
+
+  if (!quiero.length){
+    cont.innerHTML = `<div class="vacio">${segLecturas === 'escritorio'
+      ? 'El escritorio está vacío.<br>Elegí uno de los recomendados.'
+      : 'Todavía no marcaste ninguno como leído.'}</div>`;
+    return;
+  }
+
+  cont.innerHTML = quiero
+    .sort((a,b) => (b.terminado || b.agregado).localeCompare(a.terminado || a.agregado))
+    .map(l => {
+      const b = libroDe(l.libroId);
+      if (!b) return '';
+      return tarjeta(b) + (l.nota ? `<div class="libro-nota">${esc(l.nota)}</div>` : '');
+    }).join('');
+}
+
+function verLibro(id){
+  const b = libroDe(id);
+  if (!b) return;
+  const l = lecturaDe(id);
+  const p = db.datos.pilares.find(x => normal(x.nombre) === normal(b.pilar));
+
+  abrirSheet(`
+    <div class="autor-cab">
+      <h3>${esc(b.titulo)}</h3>
+      <div class="autor-anios">${esc(b.autor)} · ${esc(b.anio)}</div>
+      <p class="autor-ident">${esc(b.unaLinea)}</p>
+    </div>
+
+    <div class="autor-bloque"><label>De qué va</label><p>${esc(b.deQueVa)}</p></div>
+    <div class="autor-bloque">
+      <label>Con qué te quedás</label>
+      <p class="libro-moraleja" style="--c:${esc(p?.color || '')}">${esc(b.moraleja)}</p>
+    </div>
+
+    <div class="campo">
+      <label>Dónde ponerlo</label>
+      <div class="pick-estado" id="libroEstado">
+        <button type="button" data-est="escritorio" class="${l?.estado === 'escritorio' ? 'on' : ''}">Escritorio</button>
+        <button type="button" data-est="leyendo" class="${l?.estado === 'leyendo' ? 'on' : ''}">Leyéndolo</button>
+        <button type="button" data-est="leido" class="${l?.estado === 'leido' ? 'on' : ''}">Leído</button>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label>Qué te dejó</label>
+      <textarea id="libroNota" rows="3" placeholder="Una línea tuya, cuando lo termines.">${esc(l?.nota || '')}</textarea>
+      <button type="button" class="btn-primario" id="libroGuardar" style="margin-top:10px;width:100%">Guardar</button>
+    </div>
+
+    ${l ? `<div class="sheet-acciones">
+      <button type="button" class="btn-borrar" id="libroQuitar">Sacarlo de mi lista</button>
+    </div>` : ''}
+  `, cuerpo => {
+    $('#libroEstado', cuerpo).addEventListener('click', ev => {
+      const btn = ev.target.closest('[data-est]');
+      if (!btn) return;
+      $$('[data-est]', cuerpo).forEach(x => x.classList.toggle('on', x === btn));
+      marcarLectura(b.id, btn.dataset.est);
+      render();
+      avisar(btn.dataset.est === 'leido' ? '✓ Sumado a tus leídos' : '▤ En el escritorio');
+    });
+
+    $('#libroGuardar', cuerpo).onclick = () => {
+      const nota = $('#libroNota', cuerpo).value.trim();
+      let x = lecturaDe(b.id);
+      if (!x){ marcarLectura(b.id, 'escritorio'); x = lecturaDe(b.id); }
+      x.nota = nota;
+      db.guardar(); cerrarSheet(); render(); avisar('Guardado');
+    };
+
+    const q = $('#libroQuitar', cuerpo);
+    if (q) q.onclick = () => {
+      marcarLectura(b.id, 'quitar');
+      cerrarSheet(); render();
+    };
+  });
 }
 
 /* ============================================================
@@ -1490,6 +1807,36 @@ async function dispararNotif(){
   }catch(e){ /* sin drama: el ritual sigue siendo abrir la app */ }
 }
 
+// Aviso de rotación: 12 h antes de que la frase cambie.
+let timerCambio = null;
+
+function programarAvisoCambio(){
+  clearTimeout(timerCambio);
+  const hs = horasParaCambio();
+  if (!isFinite(hs) || hs <= 0) return;
+
+  const faltan = (hs - AVISO_HORAS) * 3600000;
+  if (faltan > 0 && faltan < 2147483000){
+    timerCambio = setTimeout(() => { dispararAvisoCambio(); renderHoy(); }, faltan);
+  }
+}
+
+async function dispararAvisoCambio(){
+  const cfg = db.datos.config;
+  if (cfg.avisoCambioDe === cfg.hoy?.fecha) return;      // uno por ciclo
+  const m = maximaDe(cfg.hoy?.maximaId);
+  if (!m) return;
+  cfg.avisoCambioDe = cfg.hoy.fecha;
+  db.guardar();
+
+  if (!cfg.notif || Notification?.permission !== 'granted') return;
+  try{
+    const reg = await navigator.serviceWorker?.ready;
+    const cuerpo = `“${m.texto}”\n\nEn 12 horas rota. Si te sirvió, dejala en favoritas.`;
+    if (reg) reg.showNotification('Mañana cambia la frase', { body:cuerpo, icon:'icons/icon-192.png', tag:'cimientos-rotacion' });
+  }catch(e){ /* el aviso en pantalla ya cumplió */ }
+}
+
 // Si la app estuvo cerrada y se abre pasada la hora, mostramos el aviso igual.
 function chequeoAlAbrir(){
   const cfg = db.datos.config;
@@ -1733,9 +2080,10 @@ const nube = {
 const cosmos = {
   activo:false, lienzo:null, ctx:null, raf:null,
   W:0, H:0, dpr:1, t:0,
-  cam:{ x:0, y:0, vx:0, vy:0 },
+  cam:{ x:0, y:0, vx:0, vy:0, escala:1, angulo:0 },
+  vuelo:null,
   nodos:[], nucleos:[], estrellas:[],
-  sel:null, arrastrando:false,
+  sel:null, punteros:new Map(), gesto:null,
 
   abrir(){
     this.lienzo = $('#cosmosLienzo');
@@ -1746,16 +2094,15 @@ const cosmos = {
     this.activo = true;
     this.medir();
 
-    // arrancamos mirando la región del pilar de la semana
     const foco = this.nucleos.find(n => n.id === db.datos.config.focoPilarId) || this.nucleos[0];
-    this.cam.x = foco ? foco.x : 0;
-    this.cam.y = foco ? foco.y : 0;
-    this.cam.vx = this.cam.vy = 0;
+    this.cam = { x:foco ? foco.x : 0, y:foco ? foco.y : 0, vx:0, vy:0, escala:0.85, angulo:0 };
+    this.vuelo = null;
+    this.punteros.clear(); this.gesto = null;
 
     this.seleccionar(null);
     const pista = $('#cosmosPista');
     pista.classList.remove('ida');
-    setTimeout(() => pista.classList.add('ida'), 4200);
+    setTimeout(() => pista.classList.add('ida'), 5000);
 
     this.loop();
   },
@@ -1777,12 +2124,8 @@ const cosmos = {
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
   },
 
-  // Reparte los pilares en un anillo y las frases alrededor del suyo,
-  // con una espiral de ángulo áureo para que no se amontonen.
   construir(){
     const ps = [...db.datos.pilares].sort((a,b) => a.orden - b.orden);
-    // Las regiones tienen que quedar lo bastante cerca para que desde una
-    // se intuyan las vecinas: si no, no se siente un ecosistema sino islas.
     const R = 215 + ps.length * 17;
     const AUREO = Math.PI * (3 - Math.sqrt(5));
 
@@ -1796,7 +2139,7 @@ const cosmos = {
       const n = this.nucleos.find(x => x.id === m.pilarId);
       const k = m.pilarId || '_';
       const i = (porPilar[k] = (porPilar[k] ?? 0) + 1) - 1;
-      const rad = 68 + Math.sqrt(i) * 36;   // 68 deja libre el centro para el rótulo
+      const rad = 68 + Math.sqrt(i) * 36;
       const ang = i * AUREO;
       return {
         m,
@@ -1810,19 +2153,63 @@ const cosmos = {
       };
     });
 
-    this.estrellas = Array.from({length:220}, () => ({
-      x:(Math.random()-.5) * 2600,
-      y:(Math.random()-.5) * 2600,
+    this.estrellas = Array.from({length:260}, () => ({
+      x:(Math.random()-.5) * 3200,
+      y:(Math.random()-.5) * 3200,
       r:Math.random() * 1.2 + .3,
       a:Math.random() * .55 + .25
     }));
   },
 
+  /* ---------- cámara: mundo ⇄ pantalla ---------- */
+
+  aPantalla(wx, wy){
+    const c = Math.cos(this.cam.angulo), s = Math.sin(this.cam.angulo);
+    const dx = wx - this.cam.x, dy = wy - this.cam.y;
+    return [
+      (dx*c - dy*s) * this.cam.escala + this.W/2,
+      (dx*s + dy*c) * this.cam.escala + this.H/2
+    ];
+  },
+
+  aMundo(px, py){
+    const c = Math.cos(this.cam.angulo), s = Math.sin(this.cam.angulo);
+    const ex = (px - this.W/2) / this.cam.escala;
+    const ey = (py - this.H/2) / this.cam.escala;
+    return [ this.cam.x + ex*c + ey*s, this.cam.y - ex*s + ey*c ];
+  },
+
+  // Mover la cámara para que un punto del mundo quede bajo un punto de pantalla.
+  anclar(mundo, px, py){
+    const c = Math.cos(this.cam.angulo), s = Math.sin(this.cam.angulo);
+    const ex = (px - this.W/2) / this.cam.escala;
+    const ey = (py - this.H/2) / this.cam.escala;
+    this.cam.x = mundo[0] - (ex*c + ey*s);
+    this.cam.y = mundo[1] - (-ex*s + ey*c);
+  },
+
+  zoom(factor, px = this.W/2, py = this.H/2){
+    const antes = this.aMundo(px, py);
+    this.cam.escala = Math.max(0.3, Math.min(6, this.cam.escala * factor));
+    this.anclar(antes, px, py);
+  },
+
+  // Entrar hacia una estrella. Persigue al nodo vivo, porque flota:
+  // si apuntáramos a donde estaba al tocarlo, quedaría descentrado.
+  volarA(nd, escala = 2.8){
+    this.vuelo = { nd, escala: Math.max(this.cam.escala, escala) };
+    this.cam.vx = this.cam.vy = 0;
+  },
+
+  alejar(){
+    this.vuelo = { x:0, y:0, escala:0.62 };
+    this.cam.vx = this.cam.vy = 0;
+  },
+
   radioDe(nd){
-    const m = nd.m;
-    const n = diasDe(m);
-    let r = 3.2 + Math.min(n, 365) ** 0.42 * 0.62;   // crece rápido al principio y después se calma
-    if (m.favorita) r += 1.2;
+    const n = diasDe(nd.m);
+    let r = 3.2 + Math.min(n, 365) ** 0.42 * 0.62;
+    if (nd.m.favorita) r += 1.2;
     return r;
   },
 
@@ -1831,15 +2218,16 @@ const cosmos = {
     return n >= 365 ? 1 : n >= 90 ? .92 : n >= 12 ? .82 : n > 0 ? .7 : .55;
   },
 
-  // ¿qué frases se muestran con el texto siempre a la vista?
+  // Con zoom alto se rotula todo: entraste a mirar de cerca.
   rotulada(nd){
-    return enManifiesto(nd.m) || nd.m.favorita || nd === this.sel;
+    return this.cam.escala > 1.5 || enManifiesto(nd.m) || nd.m.favorita || nd === this.sel;
   },
 
-  seleccionar(nd){
+  seleccionar(nd, volar = false){
     this.sel = nd;
     const carta = $('#cosmosCarta');
-    if (!nd){ carta.hidden = true; return; }
+    if (!nd){ carta.hidden = true; if (this.vuelo?.nd) this.vuelo = null; return; }
+    if (volar) this.volarA(nd);
 
     const m = nd.m;
     const p = pilarDe(m.pilarId);
@@ -1856,13 +2244,8 @@ const cosmos = {
     vibrar(8);
   },
 
-  enPantalla(nd){
-    nd.sx = (nd.x - this.cam.x) + this.W/2;
-    nd.sy = (nd.y - this.cam.y) + this.H/2;
-  },
-
   golpe(px, py){
-    let mejor = null, mejorD = 26;
+    let mejor = null, mejorD = Math.max(26, 26 * this.cam.escala);
     for (const nd of this.nodos){
       const d = Math.hypot(nd.sx - px, nd.sy - py);
       if (d < mejorD){ mejorD = d; mejor = nd; }
@@ -1874,9 +2257,20 @@ const cosmos = {
     if (!this.activo) return;
     this.t += 1/60;
     const { ctx, W, H } = this;
+    const esc = this.cam.escala;
 
-    // inercia de la cámara
-    if (!this.arrastrando){
+    // vuelo suave hacia una estrella
+    if (this.vuelo){
+      const v = this.vuelo, k = 0.12;
+      const tx = v.nd ? v.nd.x : v.x;
+      const ty = v.nd ? v.nd.y : v.y;
+      this.cam.x += (tx - this.cam.x) * k;
+      this.cam.y += (ty - this.cam.y) * k;
+      this.cam.escala += (v.escala - this.cam.escala) * k;
+      // con un nodo el vuelo no termina: lo sigue mientras esté elegido
+      if (!v.nd && Math.hypot(tx - this.cam.x, ty - this.cam.y) < 1.2 &&
+          Math.abs(v.escala - this.cam.escala) < 0.02) this.vuelo = null;
+    }else if (!this.punteros.size){
       this.cam.x += this.cam.vx; this.cam.y += this.cam.vy;
       this.cam.vx *= 0.94; this.cam.vy *= 0.94;
       if (Math.abs(this.cam.vx) < 0.02) this.cam.vx = 0;
@@ -1885,25 +2279,27 @@ const cosmos = {
 
     ctx.clearRect(0, 0, W, H);
 
-    // fondo de estrellas, con parallax para dar profundidad
+    // estrellas de fondo con parallax
+    const c = Math.cos(this.cam.angulo), s = Math.sin(this.cam.angulo);
     for (const e of this.estrellas){
-      const sx = (e.x - this.cam.x * 0.34) + W/2;
-      const sy = (e.y - this.cam.y * 0.34) + H/2;
+      const dx = e.x - this.cam.x * 0.34, dy = e.y - this.cam.y * 0.34;
+      const sx = (dx*c - dy*s) * esc * 0.7 + W/2;
+      const sy = (dx*s + dy*c) * esc * 0.7 + H/2;
       if (sx < -20 || sx > W+20 || sy < -20 || sy > H+20) continue;
       ctx.beginPath();
-      ctx.arc(sx, sy, e.r, 0, 7);
+      ctx.arc(sx, sy, e.r * Math.min(esc, 2), 0, 7);
       ctx.fillStyle = `rgba(255,255,255,${e.a * (0.6 + 0.4*Math.sin(this.t*0.5 + e.x))})`;
       ctx.fill();
     }
 
-    // posición flotante de cada nodo
     for (const nd of this.nodos){
       nd.x = nd.bx + Math.cos(this.t * nd.vel + nd.fase) * nd.amp;
       nd.y = nd.by + Math.sin(this.t * nd.vel * 0.83 + nd.fase) * nd.amp;
-      this.enPantalla(nd);
+      [nd.sx, nd.sy] = this.aPantalla(nd.x, nd.y);
     }
 
-    // hilos: mismo pilar (tenue) y mismo autor (más marcado)
+    // hilos
+    const alcance = 230 * esc;
     for (let i = 0; i < this.nodos.length; i++){
       for (let j = i+1; j < this.nodos.length; j++){
         const a = this.nodos[i], b = this.nodos[j];
@@ -1912,49 +2308,49 @@ const cosmos = {
         if (!mismoPilar && !mismoAutor) continue;
 
         const d = Math.hypot(a.sx - b.sx, a.sy - b.sy);
-        if (d > 230) continue;
+        if (d > alcance) continue;
         if (Math.max(a.sx,b.sx) < -40 || Math.min(a.sx,b.sx) > W+40) continue;
 
-        const cerca = 1 - d/230;
+        const cerca = 1 - d/alcance;
         const tocado = this.sel && (a === this.sel || b === this.sel);
         let alfa = (mismoAutor ? 0.20 : 0.075) * cerca;
         if (tocado) alfa = Math.min(0.6, alfa * 4.5 + 0.14);
 
         ctx.beginPath();
-        ctx.moveTo(a.sx, a.sy);
-        ctx.lineTo(b.sx, b.sy);
-        ctx.strokeStyle = hexA(tocado ? (this.sel.color) : (mismoAutor ? '#cbb994' : a.color), alfa);
-        ctx.lineWidth = mismoAutor ? 1 : 0.7;
+        ctx.moveTo(a.sx, a.sy); ctx.lineTo(b.sx, b.sy);
+        ctx.strokeStyle = hexA(tocado ? this.sel.color : (mismoAutor ? '#cbb994' : a.color), alfa);
+        ctx.lineWidth = (mismoAutor ? 1 : 0.7) * Math.min(esc, 2.2);
         if (mismoAutor && !tocado) ctx.setLineDash([2,5]); else ctx.setLineDash([]);
         ctx.stroke();
       }
     }
     ctx.setLineDash([]);
 
-    // núcleo de cada pilar: el nombre de la región
+    // regiones
     for (const n of this.nucleos){
-      const sx = (n.x - this.cam.x) + W/2;
-      const sy = (n.y - this.cam.y) + H/2;
-      if (sx < -160 || sx > W+160 || sy < -80 || sy > H+80) continue;
+      const [sx, sy] = this.aPantalla(n.x, n.y);
+      const radio = 190 * esc;
+      if (sx < -radio || sx > W+radio || sy < -radio || sy > H+radio) continue;
 
-      const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, 190);
+      const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, radio);
       g.addColorStop(0, hexA(n.color, 0.18));
       g.addColorStop(1, hexA(n.color, 0));
       ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(sx, sy, 190, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(sx, sy, radio, 0, 7); ctx.fill();
 
-      // el nombre de la región es fondo, no contenido: tiene que leerse
-      // sin competir con las frases
-      ctx.font = '600 9.5px -apple-system, system-ui, sans-serif';
+      ctx.save();
+      ctx.translate(sx, sy); ctx.rotate(this.cam.angulo);
+      ctx.font = `600 ${Math.min(9.5 * Math.max(esc, 1), 22)}px -apple-system, system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillStyle = hexA(n.color, 0.5);
-      ctx.fillText(n.nombre.toUpperCase().split('').join(' '), sx, sy + 3);
+      ctx.fillText(n.nombre.toUpperCase().split('').join(' '), 0, 3);
+      ctx.restore();
     }
 
     // nodos
     for (const nd of this.nodos){
-      if (nd.sx < -60 || nd.sx > W+60 || nd.sy < -60 || nd.sy > H+60) continue;
-      const r = this.radioDe(nd);
+      if (nd.sx < -80 || nd.sx > W+80 || nd.sy < -80 || nd.sy > H+80) continue;
+      const r = Math.max(1.6, Math.min(this.radioDe(nd) * esc, 26));
       const a = this.alfaDe(nd);
 
       if (enManifiesto(nd.m) || nd === this.sel){
@@ -1965,23 +2361,28 @@ const cosmos = {
         ctx.beginPath(); ctx.arc(nd.sx, nd.sy, r*4.5, 0, 7); ctx.fill();
       }
 
-      ctx.beginPath();
-      ctx.arc(nd.sx, nd.sy, r, 0, 7);
-      ctx.fillStyle = hexA(nd.color, a);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(nd.sx, nd.sy, r, 0, 7);
+      ctx.fillStyle = hexA(nd.color, a); ctx.fill();
 
       if (nd === this.sel){
         const pulso = r + 7 + Math.sin(this.t*2.6) * 2.4;
         ctx.beginPath(); ctx.arc(nd.sx, nd.sy, pulso, 0, 7);
-        ctx.strokeStyle = hexA(nd.color, .75);
-        ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.strokeStyle = hexA(nd.color, .75); ctx.lineWidth = 1.2; ctx.stroke();
       }
 
       if (this.rotulada(nd)){
+        ctx.save();
+        ctx.translate(nd.sx, nd.sy + r + 15); ctx.rotate(this.cam.angulo);
         ctx.font = '11px -apple-system, system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillStyle = `rgba(240,235,227,${nd === this.sel ? .92 : .42})`;
-        ctx.fillText(recortar(nd.m.texto, 30), nd.sx, nd.sy + r + 15);
+        ctx.fillStyle = `rgba(240,235,227,${nd === this.sel ? .92 : esc > 1.5 ? .6 : .42})`;
+        ctx.fillText(recortar(nd.m.texto, esc > 2.2 ? 46 : 30), 0, 0);
+        if (esc > 2.2 && nd.m.fuente){
+          ctx.font = '10px -apple-system, system-ui, sans-serif';
+          ctx.fillStyle = 'rgba(203,185,148,.65)';
+          ctx.fillText('— ' + nd.m.fuente, 0, 15);
+        }
+        ctx.restore();
       }
     }
 
@@ -1997,45 +2398,103 @@ const hexA = (hex, a) => {
 
 const recortar = (s, n) => s.length > n ? s.slice(0, n-1).trimEnd() + '…' : s;
 
+/* ------------------------------------------------------------
+   Gestos: un dedo arrastra, dos dedos hacen zoom y giran a la vez.
+   La rueda del mouse también acerca, para cuando estás en la compu.
+   ------------------------------------------------------------ */
+
 function cablearCosmos(){
   const lienzo = $('#cosmosLienzo');
-  let px = 0, py = 0, movido = 0, t0 = 0;
+  let movido = 0, t0 = 0;
+
+  const centro = () => {
+    const ps = [...cosmos.punteros.values()];
+    return [ (ps[0].x + ps[1].x)/2, (ps[0].y + ps[1].y)/2 ];
+  };
+  const distancia = () => {
+    const ps = [...cosmos.punteros.values()];
+    return Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
+  };
+  const angulo = () => {
+    const ps = [...cosmos.punteros.values()];
+    return Math.atan2(ps[1].y - ps[0].y, ps[1].x - ps[0].x);
+  };
+
+  const pos = ev => {
+    const r = lienzo.getBoundingClientRect();
+    return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+  };
 
   lienzo.addEventListener('pointerdown', ev => {
-    cosmos.arrastrando = true;
     lienzo.classList.add('agarrando');
-    try{ lienzo.setPointerCapture(ev.pointerId); }catch(e){ /* algunos navegadores lo rechazan */ }
-    px = ev.clientX; py = ev.clientY; movido = 0; t0 = Date.now();
+    try{ lienzo.setPointerCapture(ev.pointerId); }catch(e){}
+    cosmos.punteros.set(ev.pointerId, pos(ev));
+    cosmos.vuelo = null;          // tocar la pantalla corta el vuelo
     cosmos.cam.vx = cosmos.cam.vy = 0;
+
+    if (cosmos.punteros.size === 1){ movido = 0; t0 = Date.now(); }
+    if (cosmos.punteros.size === 2){
+      cosmos.gesto = { dist:distancia(), ang:angulo(), centro:centro() };
+    }
   });
 
   lienzo.addEventListener('pointermove', ev => {
-    if (!cosmos.arrastrando) return;
-    const dx = ev.clientX - px, dy = ev.clientY - py;
-    px = ev.clientX; py = ev.clientY;
-    movido += Math.abs(dx) + Math.abs(dy);
-    cosmos.cam.x -= dx; cosmos.cam.y -= dy;
-    cosmos.cam.vx = -dx; cosmos.cam.vy = -dy;
+    if (!cosmos.punteros.has(ev.pointerId)) return;
+    const previo = cosmos.punteros.get(ev.pointerId);
+    const actual = pos(ev);
+    cosmos.punteros.set(ev.pointerId, actual);
+
+    if (cosmos.punteros.size === 1){
+      const dx = actual.x - previo.x, dy = actual.y - previo.y;
+      movido += Math.abs(dx) + Math.abs(dy);
+      const c = Math.cos(cosmos.cam.angulo), s = Math.sin(cosmos.cam.angulo);
+      const wx = (dx*c + dy*s) / cosmos.cam.escala;
+      const wy = (-dx*s + dy*c) / cosmos.cam.escala;
+      cosmos.cam.x -= wx; cosmos.cam.y -= wy;
+      cosmos.cam.vx = -wx; cosmos.cam.vy = -wy;
+      return;
+    }
+
+    if (cosmos.punteros.size === 2 && cosmos.gesto){
+      const g = cosmos.gesto;
+      const cen = centro(), dist = distancia(), ang = angulo();
+      const anclaMundo = cosmos.aMundo(cen[0], cen[1]);
+
+      if (g.dist > 8) cosmos.cam.escala = Math.max(0.3, Math.min(6, cosmos.cam.escala * (dist / g.dist)));
+      cosmos.cam.angulo += (ang - g.ang);
+      cosmos.anclar(anclaMundo, cen[0], cen[1]);
+
+      cosmos.gesto = { dist, ang, centro:cen };
+      movido += 50;                       // con dos dedos nunca es un toque
+    }
   });
 
   const soltar = ev => {
-    if (!cosmos.arrastrando) return;
-    cosmos.arrastrando = false;
-    lienzo.classList.remove('agarrando');
+    if (!cosmos.punteros.has(ev.pointerId)) return;
+    const p = cosmos.punteros.get(ev.pointerId);
+    cosmos.punteros.delete(ev.pointerId);
+    if (cosmos.punteros.size < 2) cosmos.gesto = null;
+    if (!cosmos.punteros.size) lienzo.classList.remove('agarrando');
 
-    // poco movimiento y rápido: fue un toque, no un arrastre
-    if (movido < 8 && Date.now() - t0 < 400){
+    if (!cosmos.punteros.size && movido < 8 && Date.now() - t0 < 400){
       cosmos.cam.vx = cosmos.cam.vy = 0;
-      const r = lienzo.getBoundingClientRect();
-      cosmos.seleccionar(cosmos.golpe(ev.clientX - r.left, ev.clientY - r.top));
+      const nd = cosmos.golpe(p.x, p.y);
+      cosmos.seleccionar(nd, !!nd);        // tocar una estrella = entrar hacia ella
       $('#cosmosPista').classList.add('ida');
     }
   };
   lienzo.addEventListener('pointerup', soltar);
   lienzo.addEventListener('pointercancel', soltar);
 
+  lienzo.addEventListener('wheel', ev => {
+    ev.preventDefault();
+    const r = lienzo.getBoundingClientRect();
+    cosmos.zoom(Math.exp(-ev.deltaY * 0.0016), ev.clientX - r.left, ev.clientY - r.top);
+  }, { passive:false });
+
   $('#btnCosmos').onclick = () => cosmos.abrir();
   $('#cosmosSalir').onclick = () => cosmos.cerrar();
+  $('#cosmosAlejar').onclick = () => { cosmos.seleccionar(null); cosmos.cam.angulo = 0; cosmos.alejar(); };
 
   $('#ccResono').onclick = () => {
     if (!cosmos.sel) return;
@@ -2082,7 +2541,7 @@ function cablear(){
     const actual = db.datos.config.hoy?.maximaId;
     const otra = elegirMaxima(actual);
     if (!otra) return;
-    db.datos.config.hoy = { fecha:fechaISO(), maximaId:otra.id };
+    db.datos.config.hoy = { fecha:fechaISO(), maximaId:otra.id };   // reinicia el ciclo
     otra.ultimaVista = new Date().toISOString();
     db.guardar(); renderHoy();
   };
@@ -2102,6 +2561,19 @@ function cablear(){
   };
 
   // ---- PILARES ----
+  $('#btnAjustes').onclick = () => ir('ajustes');
+  $('#btnLecturas').onclick = () => ir('lecturas');
+  $('#btnVolverPilares').onclick = () => ir('pilares');
+  $('#segLecturas').addEventListener('click', ev => {
+    const b = ev.target.closest('[data-seg]');
+    if (!b) return;
+    segLecturas = b.dataset.seg; renderLecturas();
+  });
+  $('#lecturasLista').addEventListener('click', ev => {
+    const b = ev.target.closest('[data-libro]');
+    if (b) verLibro(b.dataset.libro);
+  });
+
   $('#btnNuevoPilar').onclick = () => editarPilar();
   $('#pilaresLista').addEventListener('click', ev => {
     const c = ev.target.closest('[data-pilar]');
@@ -2231,6 +2703,7 @@ db.cargar();
 
 cablear();
 cablearCosmos();
+programarAvisoCambio();
 aplicarTema();
 ir('hoy');
 nube.iniciar();

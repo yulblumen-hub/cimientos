@@ -15,8 +15,13 @@
    Vacíos = la app funciona igual, pero sólo en este dispositivo.
    ============================================================ */
 
-const SUPABASE_URL = '';
-const SUPABASE_KEY = '';
+const SUPABASE_URL = 'https://gvaiubytcvevuuirrhpf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_i2JaS0RNbus_z858nCe6sw_EKBDXfqO';
+
+// El proyecto es compartido con Mis Finanzas por decisión del dueño, así que
+// la tabla va con prefijo: nada de esta app puede pisar nada de la otra.
+const TABLA = 'cimientos_estado';
+
 const HAY_NUBE = !!(SUPABASE_URL && SUPABASE_KEY);
 
 /* ============================================================
@@ -1621,7 +1626,7 @@ const nube = {
     if (!this.activa) return;
     try{
       const { data, error } = await this.sb
-        .from('estado').select('datos, actualizado')
+        .from(TABLA).select('datos, actualizado')
         .eq('user_id', this.sesion.user.id).maybeSingle();
       if (error) throw error;
 
@@ -1654,7 +1659,7 @@ const nube = {
     if (!this.activa || (this.subiendo && !forzado)) return;
     this.subiendo = true;
     try{
-      const { error } = await this.sb.from('estado').upsert({
+      const { error } = await this.sb.from(TABLA).upsert({
         user_id: this.sesion.user.id,
         datos: db.datos,
         actualizado: db.datos.actualizado || new Date().toISOString()

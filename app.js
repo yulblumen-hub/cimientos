@@ -7,10 +7,24 @@
    ============================================================ */
 
 /* ============================================================
+   0. CONFIGURACIÓN DE SINCRONIZACIÓN
+   ------------------------------------------------------------
+   Estos dos valores son públicos por diseño (la clave es la
+   "publishable", pensada para vivir en el navegador). Lo que
+   protege los datos es RLS: cada persona sólo ve su fila.
+   Vacíos = la app funciona igual, pero sólo en este dispositivo.
+   ============================================================ */
+
+const SUPABASE_URL = '';
+const SUPABASE_KEY = '';
+const HAY_NUBE = !!(SUPABASE_URL && SUPABASE_KEY);
+
+/* ============================================================
    1. CAPA DE DATOS
    ============================================================ */
 
 const CLAVE = 'cimientos.v1';
+const CLAVE_RESGUARDO = 'cimientos.v1.resguardo';
 
 const db = {
   datos: null,
@@ -35,6 +49,7 @@ const db = {
     d.config.hora    ??= '07:30';
     d.config.notif   ??= false;
     d.config.miNombre ??= 'Yo';
+    d.config.tema    ??= 'auto';
     // de la versión con un solo umbral a la escalera por días
     d.maximas.forEach(m => {
       m.historial ??= Array.from({length: m.resonancias || 0}, (_, i) => {
@@ -48,12 +63,16 @@ const db = {
     return d;
   },
 
+  // Guardar es siempre local y sincrónico: la app no espera a la red nunca.
+  // La subida a la nube va aparte, en diferido.
   guardar(){
+    this.datos.actualizado = new Date().toISOString();
     try{
       localStorage.setItem(CLAVE, JSON.stringify(this.datos));
     }catch(e){
       avisar('No pude guardar (almacenamiento lleno)');
     }
+    nube.programarSubida();
   },
 
   reset(){
@@ -134,6 +153,7 @@ function semilla(){
       focoPilarId: foco.id,
       focoSemana: semanaISO(new Date()),
       miNombre: 'Yo',
+      tema: 'auto',
       umbral: 12,
       hora: '07:30',
       notif: false,
@@ -956,6 +976,8 @@ function renderAjustes(){
   $('#setNotif').checked = !!cfg.notif;
   $('#setHora').value = cfg.hora;
   $('#setMiNombre').value = cfg.miNombre || '';
+  $$('#segTema button').forEach(b => b.classList.toggle('on', b.dataset.tema === (cfg.tema || 'auto')));
+  nube.pintar();
 
   const est = $('#notifEstado');
   if (!('Notification' in window)){
@@ -1501,6 +1523,7 @@ function importar(archivo){
       d.config.hora    ??= '07:30';
       d.config.notif   ??= false;
       d.config.miNombre ??= 'Yo';
+      d.config.tema    ??= 'auto';
 
       db.datos = d;
       db.guardar();
@@ -1509,6 +1532,188 @@ function importar(archivo){
   };
   lector.readAsText(archivo);
 }
+
+/* ============================================================
+   13b. TEMA
+   ------------------------------------------------------------
+   "auto" sigue al sistema; el resto manda. Resolvemos en JS y
+   estampamos data-tema en <html> para que no haya dos fuentes
+   de verdad peleando.
+   ============================================================ */
+
+const COLOR_BARRA = { claro:'#f7f4ef', suave:'#1e1b18', oscuro:'#100f0e' };
+const mqOscuro = window.matchMedia('(prefers-color-scheme: dark)');
+
+function aplicarTema(){
+  const elegido = db.datos.config.tema || 'auto';
+  const real = elegido === 'auto' ? (mqOscuro.matches ? 'oscuro' : 'claro') : elegido;
+  document.documentElement.setAttribute('data-tema', real);
+  $$('meta[name="theme-color"]').forEach(m => m.remove());
+  const meta = document.createElement('meta');
+  meta.name = 'theme-color';
+  meta.content = COLOR_BARRA[real];
+  document.head.appendChild(meta);
+}
+
+mqOscuro.addEventListener('change', () => {
+  if ((db.datos.config.tema || 'auto') === 'auto') aplicarTema();
+});
+
+/* ============================================================
+   13c. SINCRONIZACIÓN
+   ------------------------------------------------------------
+   Local-first. El documento entero viaja como un JSON por
+   persona, con marca de tiempo: gana el más reciente. Para un
+   teléfono y una computadora del mismo dueño alcanza y sobra,
+   y evita media app de código de sincronización por tabla.
+
+   Antes de adoptar algo de la nube guardamos lo local en un
+   resguardo aparte. Nunca se pisa lo tuyo sin red de contención.
+   ============================================================ */
+
+const nube = {
+  sb:null, sesion:null, timer:null, subiendo:false, listo:false,
+
+  async iniciar(){
+    if (!HAY_NUBE) return this.pintar();
+    try{
+      const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+      this.sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+      const { data } = await this.sb.auth.getSession();
+      this.sesion = data.session;
+      this.sb.auth.onAuthStateChange((_ev, s) => {
+        const entro = !this.sesion && s;
+        this.sesion = s;
+        this.pintar();
+        if (entro) this.bajar();
+      });
+      this.listo = true;
+      this.pintar();
+      if (this.sesion) await this.bajar();
+    }catch(e){
+      console.warn('Sin nube por ahora', e);
+      this.pintar();
+    }
+  },
+
+  get activa(){ return !!(this.sb && this.sesion); },
+
+  async entrar(email){
+    if (!this.sb) return avisar('La sincronización todavía no está configurada');
+    const { error } = await this.sb.auth.signInWithOtp({
+      email,
+      options:{ emailRedirectTo: location.origin + location.pathname }
+    });
+    if (error) return avisar('No pude mandar el mail: ' + error.message);
+    avisar('Te mandé un enlace por mail. Abrilo desde este dispositivo.');
+  },
+
+  async salir(){
+    if (!this.sb) return;
+    await this.sb.auth.signOut();
+    this.sesion = null;
+    this.pintar();
+    avisar('Cerraste la sesión. Tus datos siguen acá.');
+  },
+
+  // Traer lo de la nube. Sólo adoptamos si es más nuevo que lo local.
+  async bajar(){
+    if (!this.activa) return;
+    try{
+      const { data, error } = await this.sb
+        .from('estado').select('datos, actualizado')
+        .eq('user_id', this.sesion.user.id).maybeSingle();
+      if (error) throw error;
+
+      const local = db.datos.actualizado || '';
+      if (!data){                        // cuenta nueva: sube lo que ya tenías
+        await this.subir(true);
+        return;
+      }
+      if ((data.actualizado || '') > local){
+        localStorage.setItem(CLAVE_RESGUARDO, JSON.stringify(db.datos));  // red de contención
+        db.datos = data.datos;
+        db.cargar.call(db);              // normaliza campos que falten
+        aplicarTema(); render();
+        avisar('Sincronizado');
+      }else if (local > (data.actualizado || '')){
+        await this.subir(true);
+      }
+    }catch(e){
+      console.warn('No pude bajar', e);
+    }
+  },
+
+  programarSubida(){
+    if (!this.activa) return;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.subir(), 1500);
+  },
+
+  async subir(forzado = false){
+    if (!this.activa || (this.subiendo && !forzado)) return;
+    this.subiendo = true;
+    try{
+      const { error } = await this.sb.from('estado').upsert({
+        user_id: this.sesion.user.id,
+        datos: db.datos,
+        actualizado: db.datos.actualizado || new Date().toISOString()
+      }, { onConflict:'user_id' });
+      if (error) throw error;
+      this.pintar();
+    }catch(e){
+      console.warn('No pude subir', e);
+    }finally{
+      this.subiendo = false;
+    }
+  },
+
+  pintar(){
+    const caja = $('#syncCaja');
+    if (!caja) return;
+
+    if (!HAY_NUBE){
+      caja.innerHTML = `
+        <p class="nota-tec" style="margin:0">
+          Todavía sin configurar. Por ahora los datos viven sólo en este
+          dispositivo — acordate de exportar un respaldo de vez en cuando.
+        </p>`;
+      return;
+    }
+
+    if (this.activa){
+      caja.innerHTML = `
+        <div class="sync-estado">
+          <i class="sync-punto on"></i>
+          <span>Sincronizado</span>
+        </div>
+        <div class="sync-mail">${esc(this.sesion.user.email || '')}</div>
+        <div class="set-botones">
+          <button class="btn" id="syncAhora" type="button">Sincronizar ahora</button>
+          <button class="btn" id="syncSalir" type="button">Cerrar sesión</button>
+        </div>`;
+      $('#syncAhora').onclick = async () => { await nube.bajar(); await nube.subir(true); avisar('Al día'); };
+      $('#syncSalir').onclick = () => nube.salir();
+      return;
+    }
+
+    caja.innerHTML = `
+      <div class="sync-estado"><i class="sync-punto"></i><span>Sólo en este dispositivo</span></div>
+      <p class="nota-tec" style="margin:0 0 12px">
+        Poné tu mail y te llega un enlace para entrar. Sin contraseñas.
+        Después abrís la app en la computadora con el mismo mail y tenés todo.
+      </p>
+      <div class="sync-form">
+        <input type="email" id="syncMail" placeholder="tu@mail.com" autocomplete="email">
+        <button class="btn" id="syncEntrar" type="button" style="flex:0 0 auto">Entrar</button>
+      </div>`;
+    $('#syncEntrar').onclick = () => {
+      const m = $('#syncMail').value.trim();
+      if (!/.+@.+\..+/.test(m)) return avisar('Escribí un mail válido');
+      nube.entrar(m);
+    };
+  }
+};
 
 /* ============================================================
    14b. CONSTELACIÓN
@@ -1955,6 +2160,13 @@ function cablear(){
     db.datos.config.miNombre = e.target.value.trim() || 'Yo';
     e.target.value = db.datos.config.miNombre; db.guardar();
   };
+  $('#segTema').addEventListener('click', ev => {
+    const b = ev.target.closest('[data-tema]');
+    if (!b) return;
+    db.datos.config.tema = b.dataset.tema;
+    db.guardar(); aplicarTema(); renderAjustes();
+  });
+
   $('#btnExportar').onclick = exportar;
   $('#btnImportar').onclick = () => $('#fileImportar').click();
   $('#fileImportar').onchange = e => { if (e.target.files[0]) importar(e.target.files[0]); e.target.value = ''; };
@@ -2014,7 +2226,9 @@ db.cargar();
 
 cablear();
 cablearCosmos();
+aplicarTema();
 ir('hoy');
+nube.iniciar();
 programarNotif();
 chequeoAlAbrir();
 

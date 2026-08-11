@@ -24,8 +24,9 @@
   --safe-t: env(safe-area-inset-top, 0px);
 }
 
+/* Oscuro duro: negro casi puro, para leer de noche sin nada alrededor. */
 @media (prefers-color-scheme: dark){
-  :root{
+  :root:not([data-tema]){
     --bg:        #100f0e;
     --bg-alto:   #191715;
     --superficie:#1c1a17e6;
@@ -37,6 +38,33 @@
     --peligro:   #d9705c;
     --sombra:    0 1px 2px #00000040, 0 8px 24px #00000050;
   }
+}
+:root[data-tema="oscuro"]{
+  --bg:        #100f0e;
+  --bg-alto:   #191715;
+  --superficie:#1c1a17e6;
+  --texto:     #f0ebe3;
+  --texto-2:   #9c948a;
+  --texto-3:   #6a635b;
+  --linea:     #2b2823;
+  --linea-2:   #221f1c;
+  --peligro:   #d9705c;
+  --sombra:    0 1px 2px #00000040, 0 8px 24px #00000050;
+}
+
+/* Oscuro suave: gris cálido en vez de negro y menos contraste.
+   Cansa bastante menos si la app está abierta un rato largo. */
+:root[data-tema="suave"]{
+  --bg:        #1e1b18;
+  --bg-alto:   #272320;
+  --superficie:#272320e6;
+  --texto:     #e7e0d5;
+  --texto-2:   #a89e91;
+  --texto-3:   #7d746a;
+  --linea:     #3a352f;
+  --linea-2:   #2e2a25;
+  --peligro:   #d9705c;
+  --sombra:    0 1px 2px #00000030, 0 8px 24px #00000038;
 }
 
 *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -580,6 +608,22 @@ button{ background:none; border:0; cursor:pointer; }
   color:var(--texto-3); transition:.15s;
 }
 .segmento button.on{ background:var(--bg); color:var(--texto); box-shadow:var(--sombra); }
+.seg-tema{ margin:0 0 4px; }
+.seg-tema button{ font-size:12.5px; padding:9px 4px; }
+
+/* --- sincronización --- */
+.sync-estado{
+  display:flex; align-items:center; gap:10px;
+  font-size:14px; padding:4px 0 12px;
+}
+.sync-punto{ width:8px; height:8px; border-radius:50%; background:var(--texto-3); flex:none; }
+.sync-punto.on{ background:#5f9b6f; }
+.sync-mail{ color:var(--texto-2); font-size:13px; word-break:break-all; }
+.sync-form{ display:flex; gap:8px; margin-top:4px; }
+.sync-form input{
+  flex:1; min-width:0; padding:11px 13px; border-radius:11px;
+  background:var(--bg); border:1px solid var(--linea); outline:none; font-size:15px;
+}
 
 .dlg{
   padding:16px 18px; margin-bottom:9px; border-radius:14px;
